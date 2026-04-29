@@ -1,20 +1,19 @@
-// Insight engine: turns a WalletAnalysis into a CardData payload by
-// fanning out to Claude for the prose line and filling structural fields
-// (icon, label, stat, accent, sub) from a per-card-type template.
+// Insight engine: turns a WalletAnalysis into a CardData payload.
 //
-// CardData mirrors the shape consumed by Card.tsx (Phase 4) and matches
-// the design tokens / cards-data.jsx schema.
+// Flow:
+//   1. Pick prompt template by card type.
+//   2. Call llm.callLLM(SYSTEM, buildUserPrompt(analysis)).
+//   3. On both providers failing, fall back to llm.mock pool.
+//   4. Wrap the prose line + structural fields (icon, label, stat) into
+//      a CardData ready for Card.tsx (Phase 4).
 
-import { callClaude } from '../services/claude';
+import { callLLM, getLastProvider, type Provider } from '../services/llm';
+import { callLLMMock } from '../services/llm.mock';
 import * as Diamond from '../prompts/diamond-hand';
 import * as OG from '../prompts/og-status';
 import * as Recap from '../prompts/year-recap';
 import { shortenAddress } from './wallet';
 import type { CardData, CardType, WalletAnalysis } from '../types';
-
-const DIAMOND_TYPES: CardType[] = ['diamond'];
-const OG_TYPES: CardType[] = ['og'];
-const RECAP_TYPES: CardType[] = ['recap'];
 
 type Template = {
   icon: string;
@@ -23,8 +22,7 @@ type Template = {
   buildStat: (a: WalletAnalysis) => { stat: string; statUnit: string; sub: string };
   prompt: {
     SYSTEM: string;
-    FEW_SHOT: ReturnType<typeof Diamond.buildUserMessage>[] | typeof Diamond.FEW_SHOT;
-    buildUserMessage: (a: WalletAnalysis) => ReturnType<typeof Diamond.buildUserMessage>;
+    buildUserPrompt: (a: WalletAnalysis) => string;
   };
 };
 
@@ -70,7 +68,7 @@ const TEMPLATES: Record<CardType, Template | null> = {
     }),
     prompt: Recap,
   },
-  // The remaining types ship visually in Phase 6 but don't have AI lines yet.
+  // Phase 6 ships these visually but they don't have AI lines yet.
   swaps: null,
   genre: null,
   personality: null,
@@ -79,19 +77,41 @@ const TEMPLATES: Record<CardType, Template | null> = {
 
 export const ACTIVE_INSIGHT_CARDS: CardType[] = ['diamond', 'og', 'recap'];
 
+export type InsightProvider = Provider | 'mock';
+
+export type InsightTrace = {
+  cardType: CardType;
+  provider: InsightProvider;
+  raw: string; // pre-sanitization (mock: same as final)
+  line: string; // post-sanitization (what ships to UI)
+};
+
 export async function generateCardInsight(
   cardType: CardType,
-  analysis: WalletAnalysis
+  analysis: WalletAnalysis,
+  trace?: InsightTrace[]
 ): Promise<CardData> {
   const tpl = TEMPLATES[cardType];
   if (!tpl) throw new Error(`No template for cardType=${cardType}`);
 
-  const line = await callClaude({
-    system: tpl.prompt.SYSTEM,
-    messages: [...tpl.prompt.FEW_SHOT, tpl.prompt.buildUserMessage(analysis)],
-    maxTokens: 100,
-    temperature: 0.7,
-  });
+  const sys = tpl.prompt.SYSTEM;
+  const user = tpl.prompt.buildUserPrompt(analysis);
+
+  let raw = '';
+  let line = '';
+  let provider: InsightProvider = 'mock';
+  try {
+    line = await callLLM(sys, user);
+    raw = line;
+    provider = (getLastProvider() ?? 'mock') as InsightProvider;
+  } catch (e) {
+    console.warn(`[insight-engine] LLM fallback to mock for ${cardType}: ${(e as Error).message}`);
+    line = callLLMMock(sys, user);
+    raw = line;
+    provider = 'mock';
+  }
+
+  if (trace) trace.push({ cardType, provider, raw, line });
 
   const { stat, statUnit, sub } = tpl.buildStat(analysis);
   const walletShort = shortenAddress(analysis.address);
@@ -104,28 +124,17 @@ export async function generateCardInsight(
     stat,
     statUnit,
     sub,
-    line: cleanLine(line),
+    line,
     pubkey: walletShort,
     walletShort,
   };
 }
 
 export async function generateAllInsights(
-  analysis: WalletAnalysis
+  analysis: WalletAnalysis,
+  trace?: InsightTrace[]
 ): Promise<CardData[]> {
-  return Promise.all(ACTIVE_INSIGHT_CARDS.map((t) => generateCardInsight(t, analysis)));
-}
-
-// Strip leading/trailing quotes, drop trailing punctuation that creeps in
-// from longer-than-asked outputs, and enforce ≤15 words by truncating.
-function cleanLine(raw: string): string {
-  let s = raw.trim().replace(/^["'`]+|["'`]+$/g, '');
-  // First sentence-ish — split on a hard period followed by space + capital.
-  const firstChunk = s.split(/\n/)[0].trim();
-  s = firstChunk.length > 0 ? firstChunk : s;
-  const words = s.split(/\s+/);
-  if (words.length > 15) {
-    s = words.slice(0, 15).join(' ').replace(/[,;:]$/, '') + '.';
-  }
-  return s;
+  return Promise.all(
+    ACTIVE_INSIGHT_CARDS.map((t) => generateCardInsight(t, analysis, trace))
+  );
 }

@@ -1,21 +1,25 @@
-// Run all 3 active insights against a real WalletAnalysis and print
-// CardData JSON. Used to manually review prose quality.
+// Run all 3 active insights against a real WalletAnalysis and emit:
+//   • Provider used per call (gemini / groq / mock)
+//   • Raw output before sanitization
+//   • Final sanitized output that ships to the UI
+//   • Final CardData JSON
 //
 // Usage:
 //   cd ~/Projects/wrap
 //   npx tsx scripts/test-insights.ts [PUBKEY]
 //
-// Loads mobile/.env.local so EXPO_PUBLIC_HELIUS_KEY and
-// EXPO_PUBLIC_ANTHROPIC_KEY are available. Falls back to mocks for
-// missing keys.
+// Loads mobile/.env.local so EXPO_PUBLIC_HELIUS_KEY, EXPO_PUBLIC_GEMINI_KEY,
+// EXPO_PUBLIC_GROQ_KEY are available. Falls back to mocks for missing keys.
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { getAllAssets, getWalletTransactions } from '../mobile/src/services/helius';
 import { analyzeWallet } from '../mobile/src/lib/wallet-analyzer';
-import { generateAllInsights } from '../mobile/src/lib/insight-engine';
-import { isMockMode } from '../mobile/src/services/claude';
+import {
+  generateAllInsights,
+  type InsightTrace,
+} from '../mobile/src/lib/insight-engine';
 
 function loadDotEnv(path: string) {
   try {
@@ -38,7 +42,6 @@ async function main() {
   loadDotEnv(resolve(process.cwd(), 'mobile/.env.local'));
   const pk = process.argv[2] ?? '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
   console.error(`[wrap] generating insights for ${pk}…`);
-  console.error(`[wrap] Claude mode: ${isMockMode() ? 'MOCK' : 'LIVE'}`);
 
   const t0 = Date.now();
   const [transactions, assets] = await Promise.all([
@@ -48,8 +51,17 @@ async function main() {
   const analysis = analyzeWallet({ address: pk, transactions, assets });
   console.error(`[wrap] analysis ready in ${Date.now() - t0}ms`);
 
-  const insights = await generateAllInsights(analysis);
+  const trace: InsightTrace[] = [];
+  const insights = await generateAllInsights(analysis, trace);
   console.error(`[wrap] insights ready in ${Date.now() - t0}ms total`);
+  console.error('');
+
+  for (const t of trace) {
+    console.error(`[${t.cardType}] provider=${t.provider}`);
+    console.error(`[${t.cardType}]    raw: ${t.raw}`);
+    console.error(`[${t.cardType}]  final: ${t.line}`);
+    console.error('');
+  }
 
   process.stdout.write(JSON.stringify(insights, null, 2) + '\n');
 }

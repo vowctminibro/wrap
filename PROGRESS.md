@@ -199,5 +199,71 @@ backfill` lands, the stat fields render correctly without any insight-
 engine change.
 
 **Blockers:**
-- B-001: `ANTHROPIC_API_KEY` missing → mock fallback active. See
-  `BLOCKERS.md` for the unblock recipe (paste into `.env.local`, rerun).
+- B-001: `ANTHROPIC_API_KEY` missing → resolved by Phase 3.5 — replaced
+  Anthropic with Gemini-primary + Groq-fallback architecture; both keys
+  provided.
+
+---
+
+## Phase 3.5 — LLM Architecture Refactor (provider chain) ✅
+
+**Decisions:**
+- Renamed `src/services/claude.ts` → `src/services/llm.ts`. Public surface
+  is the simpler `callLLM(systemPrompt, userPrompt) → Promise<string>`.
+- Provider chain: **Gemini 2.5 Flash** primary → **Groq Llama 3.3 70B**
+  fallback → throw → caller (insight-engine) falls back to a hand-crafted
+  mock pool. Both providers are free-tier; no billing risk.
+- 10 s `AbortController` timeout per provider.
+- `getLastProvider()` exposed for debug-only telemetry (not surfaced to UI).
+- `sanitizeOutput()` strips quotes, drops common preambles (`Output:`,
+  `Here's...`), collapses whitespace, hard-caps at 15 words.
+- Prompt files refactored to expose flat `(SYSTEM, buildUserPrompt)` —
+  few-shot pairs are now serialized into the user prompt as
+  `Input: {…}\nOutput: {…}` blocks, ending with `Now generate for:`.
+- `insight-engine.ts` accepts an optional `trace[]` parameter so the
+  test runner can surface which provider responded for each card type.
+
+**Iterations needed:** 1 (with a config bug-fix mid-iteration).
+
+Round 1 was triggered because real Gemini output was clipped to 1-3
+words. Root cause turned out to be Gemini 2.5 Flash spending the
+`maxOutputTokens` budget on internal "thinking" tokens before emitting
+visible text. Fix: set `thinkingConfig.thinkingBudget = 0` in the
+generation config — for a 15-word one-liner there's nothing to think
+about. Concurrently I:
+- Added a per-prompt "weak-signal" few-shot example so the model knows
+  it must produce a punchy 10-15-word line even when the input numbers
+  are small (the test wallet shows degenerate values because of the
+  Phase 2 fetch-cap issue).
+- Tightened SYSTEM with `Output exactly one sentence between 10 and 15
+  words` and `No questions`.
+- Bumped both providers' max output tokens 80 → 120 for headroom.
+
+### Phase 3.5 Real LLM Output
+
+Wallet: `7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU` ·
+End-to-end pipeline runtime: **~3.4 s** with Gemini, ~3.4 s with Groq
+fallback (Helius dominates the budget either way).
+
+**With Gemini (primary path):**
+- **Diamond Hand** — *"Your SAMO is still there. Unsold, untouched. Builders build, not trade."*
+- **OG Status** — *"Eighteen communities on day one. You're already building the next wave, anon."*
+- **Year Recap** — *"78 swaps across 58 programs. One mint. Curious hands, disciplined wallet."*
+
+**With Groq fallback (forced via invalid Gemini key):**
+- **Diamond Hand** — *"SAMO purchase still on the ledger, a deliberate unchecked holding."*
+- **OG Status** — *"First day in and eighteen communities strong already on the ground floor."*
+- **Year Recap** — *"78 swaps across 58 protocols with calculated precision every time."*
+
+Voice rules: ≤15 words ✓ · references real numbers (eighteen communities,
+78 swaps, 58 programs, SAMO) ✓ · no emoji ✓ · no exclamation ✓ ·
+confident voice ✓.
+
+**Quality concerns to flag:**
+- Both providers occasionally drift toward mild abstraction (e.g. "calculated
+  precision", "the next wave, anon"). Not generic praise per the voice rules,
+  but worth a Phase Polish pass once richer wallet data lands (the 200-tx
+  fetch cap from Phase 2 still distorts inputs).
+- All 3 lines reference SAMO / 78 swaps because that's the most distinctive
+  data point in the fetched window. With a wider window the engine has more
+  to draw on.
