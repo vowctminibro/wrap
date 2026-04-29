@@ -15,7 +15,12 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { colors, gradients, fontSizes, spacing, radius } from '../theme/tokens';
 import { connectWallet } from '../lib/wallet';
-import { makeMockAnalysis } from '../lib/mock-analysis';
+import { analyzeWallet } from '../lib/wallet-analyzer';
+import { getAllAssets, getWalletTransactions } from '../services/helius';
+
+// Real Solana power-user wallet — used as the dev fallback when MWA isn't
+// available (iOS / web), so the dev loop sees real data on Mac mini.
+const DEV_FALLBACK_PUBKEY = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
 
@@ -64,20 +69,18 @@ export default function OnboardingScreen({ navigation }: Props) {
   const onConnect = async () => {
     setConnecting(true);
     try {
-      if (Platform.OS !== 'android') {
-        // MWA only runs on Android. Use mock for iOS / web compile checks.
-        const fakePk = 'MockWa11et1111111111111111111111111111111111';
-        navigation.navigate('CardReveal', {
-          publicKey: fakePk,
-          analysis: makeMockAnalysis(fakePk),
-        });
-        return;
-      }
-      const { publicKey } = await connectWallet();
-      navigation.navigate('CardReveal', {
-        publicKey,
-        analysis: makeMockAnalysis(publicKey),
-      });
+      const publicKey =
+        Platform.OS === 'android'
+          ? (await connectWallet()).publicKey
+          : DEV_FALLBACK_PUBKEY;
+
+      const [transactions, assets] = await Promise.all([
+        getWalletTransactions(publicKey, 200),
+        getAllAssets(publicKey),
+      ]);
+      const analysis = analyzeWallet({ address: publicKey, transactions, assets });
+
+      navigation.navigate('CardReveal', { publicKey, analysis });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Wallet connection failed';
       Alert.alert('Connect Wallet', msg);

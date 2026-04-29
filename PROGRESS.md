@@ -37,5 +37,89 @@ Phase 5.
 
 **API key status:**
 - `ANTHROPIC_API_KEY`: **found** at `~/.config/anthropic/api_key`
-- `HELIUS_API_KEY`: **not found** — Phase 2 will use mock mode by default
-  unless human supplies one
+- `HELIUS_API_KEY`: **provided** — saved to `mobile/.env.local` as
+  `EXPO_PUBLIC_HELIUS_KEY`, ignored via `.env*.local` rule
+
+---
+
+## Phase 2 — Day 5: Helius RPC Integration ✅
+
+**Commits:** see `git log` for `Day 5.x:` commits.
+
+**Definition of Done:**
+- [x] `src/services/helius.ts` exposes `getWalletTransactions`,
+  `getTokenHoldings`, `getNFTsForOwner`, plus `getAllAssets` for shared use
+- [x] `src/services/helius.mock.ts` returns realistic fixtures, used as
+  automatic fallback when `EXPO_PUBLIC_HELIUS_KEY` is missing
+- [x] `src/lib/wallet-analyzer.ts` is pure, returns `WalletAnalysis`
+- [x] Personality classification runs on real data
+- [x] `tsc --noEmit` clean
+
+**Decisions:**
+- Network split implemented: read calls default to `mainnet`; analyzer is
+  network-agnostic. Devnet caller for tx history transparently falls back
+  to mocks (Helius Enhanced REST is mainnet-only).
+- DAS `getAssetsByOwner` with `showFungible: true` used for both
+  `getTokenHoldings` and `getNFTsForOwner` so we make one round trip and
+  split the result by interface; this also gives us USD price info for
+  free via `token_info.price_info.total_price`.
+- Helius key read via lazy `getKey()` so Node-side scripts that load
+  `.env.local` post-import still see it. In Expo it's inlined at build time.
+
+**Known limitations (logged for human awareness, not blocking):**
+- 200-tx fetch cap: ultra-active wallets (>200 txs in past 24h) report a
+  wallet-age and average-hold-days based only on the recent window. Will
+  fix in Phase Polish by adding a separate `getOldestSignature` call that
+  paginates `getSignaturesForAddress` until exhausted.
+- `averageHoldDays` only sees in→out matches inside the fetched window.
+  Same root cause; same fix.
+- `drawdownsHeld` uses a current-value proxy (large-balance, low-USD
+  tokens), not historical drawdown. Real drawdown needs a price-feed
+  integration not in scope for the sprint.
+
+### Phase 2 Smoke Test
+
+Wallet: `7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU`
+Fetch: 200 transactions + 116 assets in ~4.3 s on real Helius mainnet.
+
+```json
+{
+  "address": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+  "totalSwaps": 76,
+  "totalMints": 1,
+  "totalTransactions": 200,
+  "oldestTxDate": "2026-04-28T20:43:11.000Z",
+  "walletAgeDays": 1,
+  "biggestHold": {
+    "mint": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+    "symbol": "SAMO",
+    "amount": 1205819.59,
+    "valueUSD": 435.71
+  },
+  "topTokensByValue": [
+    { "symbol": "SAMO", "amount": 1205819.59, "valueUSD": 435.71 },
+    { "symbol": "USDC", "amount": 33.55, "valueUSD": 33.54 },
+    { "symbol": "USDT", "amount": 1, "valueUSD": 1.00 },
+    { "symbol": "CASH", "amount": 1, "valueUSD": 1.00 },
+    { "symbol": "Aliens", "amount": 391, "valueUSD": 0.24 }
+  ],
+  "communitiesJoined": [
+    { "collection": "5c3BUaoj7GNBLyRFUoRNNnt5kqaKTc68DNrCYAQijb8P", "isOG": true },
+    { "collection": "Em9wb7niKr9bkvDeYnzA57XPU11KDTBSKBnY7J4SHPFL", "isOG": true },
+    { "collection": "2BEAtXJZGncSdX41pYEB5XcfvCGC7sgDQ8M2SbXma1Ah", "isOG": true },
+    { "collection": "D8PJYBwEZpjmxAYijP8frNeEnKLGgdgmjmB4zWfiRiby", "isOG": true },
+    { "collection": "7QuScCRP6d7CZUbAkiQYn6pd7nTj8wQW37sS1HK4pRh4", "isOG": true }
+  ],
+  "drawdownsHeld": [
+    { "symbol": "SAMO", "amount": 1205819.59, "valueUSD": 435.71 }
+  ],
+  "uniqueProgramsInteracted": 59,
+  "averageHoldDays": 0,
+  "personality": "builder"
+}
+```
+
+(Top arrays truncated to first 5 per project convention.)
+Note `walletAgeDays: 1` reflects the 200-tx fetch cap — see "Known
+limitations" above. The `personality: "builder"` classification correctly
+fires on `uniqueProgramsInteracted: 59 > 5`.
