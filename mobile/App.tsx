@@ -1,20 +1,45 @@
+import './src/lib/polyfills';
+
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import OnboardingScreen from './src/screens/OnboardingScreen';
+import CardRevealScreen from './src/screens/CardRevealScreen';
+import type { RootStackParamList } from './src/types';
+import { colors } from './src/theme/tokens';
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const navTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: colors.bg,
+    card: colors.bg,
+    text: colors.white,
+    border: colors.hairlineSoft,
+    primary: colors.solanaRed,
+  },
+};
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <StatusBar style="light" />
+      <NavigationContainer theme={navTheme}>
+        <Stack.Navigator
+          initialRouteName="Onboarding"
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.bg },
+          }}
+        >
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen name="CardReveal" component={CardRevealScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
