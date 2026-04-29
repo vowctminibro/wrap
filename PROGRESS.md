@@ -358,3 +358,66 @@ confident voice ✓.
 the captured PNG locally (FileSystem cache) and submits a
 `placeholder://wrap-card` URI to the metadata. Real image hosting is a
 Phase Polish task; logging a future B-003 when we get there.
+
+---
+
+## Phase 6 — Day 9: Affiliate Hooks + Gallery + Polish ✅
+
+**Definition of Done:**
+- [x] Affiliate CTAs scoped to card type, all carrying `?ref=WRAP_SOL`:
+  diamond → MarginFi, og → Magic Eden, recap → Jupiter (with the user's
+  top token interpolated into the swap pair)
+- [x] `CardGalleryScreen` with 7 thumbnails — 3 active (Diamond / OG /
+  Recap) tappable, 4 dimmed v2 placeholders (Top Tokens / Top Genre /
+  Personality / Achievements) with badge overlay
+- [x] All 4 production screens navigable
+  (Onboarding → CardReveal → MintConfirm + CardReveal → Gallery)
+- [x] Loading + error states wired: gradient pulse loader, "Wallet
+  history unavailable" alert on Helius failure, "New wallet" alert on
+  empty history
+- [x] All visual values consume from `theme/tokens.ts`; no hardcoded
+  hex outside the per-card gradient maps in `tokens.ts` itself
+- [x] `README.md` polished — full layout, dev setup, smoke tests, demo
+  flow
+- [x] `tsc --noEmit` clean. `expo-doctor` 17/17.
+
+**Decisions:**
+- Affiliate links are tertiary visually — pill-shaped outlined button in
+  small text below the primary Share/Mint row. Cocky voice is reserved
+  for the AI line; affiliate CTA is plain action language.
+- Gallery thumbnails reuse the same gradient + pixel-icon palette as
+  full-size cards but at 9:12 aspect; v2 placeholders dim with a 55%
+  black overlay + a top-right "v2" badge so they read as forthcoming
+  rather than broken.
+- Tapping an active gallery thumbnail just `goBack()`s to CardReveal;
+  CardReveal can't accept an `initialPage` param mid-mount, and a more
+  surgical deep-link is Phase Polish work.
+- OnboardingScreen now hides raw error strings behind contextual alerts
+  ("Wallet history unavailable" vs "New wallet" vs the catch-all).
+
+---
+
+## Hermes handoff status — final check
+
+`HERMES_HANDOFF.md` was scaffolded with empty fields for the browser-
+side tasks (devnet airdrop + Pinata signup). At sprint close:
+
+- **All fields still `TODO`** — Hermes hadn't run by the time Phase 6
+  finished. No integration possible this session.
+
+Per the sprint plan ("If still TODO placeholders → keep stub mode, log
+clearly which pieces are stub vs live"):
+
+| Concern | State at sprint close |
+|---|---|
+| Helius mainnet reads | **LIVE** — real key, real data flowing |
+| Gemini 2.5 Flash insights | **LIVE** — real key, on-brand prose |
+| Groq fallback | **LIVE** — verified via forced Gemini failure |
+| Mock LLM ultimate fallback | **LIVE** — pool exercised when both providers throw |
+| MWA wallet connect | **WIRED** — compiles; runs on Seeker / Android only |
+| view-shot card capture | **LIVE** — works in tsc-verified path; needs device to fully validate |
+| expo-sharing share sheet | **LIVE** — text-intent fallback for unsupported platforms |
+| Devnet Merkle tree | **STUB** — B-002, no devnet SOL |
+| cNFT on-chain mint | **STUB** — same root cause + MWA→umi signer bridge |
+| Pinata image hosting | **NOT WIRED** — pending Hermes JWT |
+| Affiliate links | **LIVE** — open the right partner with `?ref=WRAP_SOL` |
