@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import Card from '../components/Card';
+import AffiliateButton from '../components/AffiliateButton';
 import { generateAllInsights } from '../lib/insight-engine';
 import { buildShareText, shareCardImage } from '../lib/share-card';
 import { mintCardAsCNFT } from '../services/cnft-mint';
@@ -143,7 +144,12 @@ export default function CardRevealScreen({ navigation, route }: Props) {
             <Text style={styles.backBtnText}>‹</Text>
           </Pressable>
           <Text style={styles.topLabel}>YOUR WRAPPED</Text>
-          <View style={{ width: 40 }} />
+          <Pressable
+            onPress={() => navigation.navigate('Gallery', { publicKey, analysis })}
+            style={styles.galleryBtn}
+          >
+            <Text style={styles.galleryBtnText}>≡</Text>
+          </Pressable>
         </View>
 
         {/* Card carousel */}
@@ -217,6 +223,13 @@ export default function CardRevealScreen({ navigation, route }: Props) {
               <Text style={styles.ctaText}>Mint as NFT</Text>
             )}
           </Pressable>
+        </View>
+
+        {/* Tertiary affiliate CTA, scoped to current card type */}
+        <View style={styles.affiliateRow}>
+          {cards[page] ? (
+            <AffiliateButton card={cards[page]} analysis={analysis} />
+          ) : null}
         </View>
       </SafeAreaView>
     </View>
@@ -365,5 +378,24 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: -0.3,
+  },
+  galleryBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.bgElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  galleryBtnText: {
+    color: colors.white,
+    fontSize: 22,
+    fontWeight: '900',
+    marginTop: -2,
+  },
+  affiliateRow: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    alignItems: 'center',
   },
 });

@@ -74,11 +74,31 @@ export default function OnboardingScreen({ navigation }: Props) {
           ? (await connectWallet()).publicKey
           : DEV_FALLBACK_PUBKEY;
 
-      const [transactions, assets] = await Promise.all([
-        getWalletTransactions(publicKey, 200),
-        getAllAssets(publicKey),
-      ]);
+      let transactions, assets;
+      try {
+        [transactions, assets] = await Promise.all([
+          getWalletTransactions(publicKey, 200),
+          getAllAssets(publicKey),
+        ]);
+      } catch (e) {
+        // Helius timeout / rate-limit / network — surface a clean message
+        // and let the user retry instead of dying on a raw error string.
+        Alert.alert(
+          'Wallet history unavailable',
+          'Could not reach the indexer. Check your connection and try again.'
+        );
+        return;
+      }
+
       const analysis = analyzeWallet({ address: publicKey, transactions, assets });
+
+      if (analysis.totalTransactions === 0) {
+        Alert.alert(
+          'New wallet',
+          "We couldn't find any on-chain history for this wallet yet. WRAP works best after a few transactions."
+        );
+        return;
+      }
 
       navigation.navigate('CardReveal', { publicKey, analysis });
     } catch (err: unknown) {
