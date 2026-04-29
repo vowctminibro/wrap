@@ -8,8 +8,9 @@ Status legend: ✅ done · ⚠️ done with caveat · ❌ blocked · ⏳ in prog
 
 **Commits:**
 - `463624d` Day 4.0: track existing devnet helper scripts
-- `38f6d0f` Day 4.1: scaffold Expo TS app + Solana mobile deps — mobile/ bootstrapped *(hash placeholder; verify via `git log`)*
-- `[Day 4.2]` Day 4.2: MWA wallet wiring + OnboardingScreen — Phase 1 complete
+- `304590b` Day 4.1: scaffold Expo TS app + Solana mobile deps
+- `0ff8415` Day 4.2: MWA wallet wiring + OnboardingScreen — Phase 1 complete
+- `a2057fd` Day 4.3: PROGRESS.md initialized
 
 **Definition of Done:**
 - [x] `mobile/` exists at `~/Projects/wrap/mobile/`
