@@ -40,7 +40,7 @@ function Screen1_Onboarding({ onConnect }) {
           fontSize: 28, fontWeight: 500, color: '#6b6b78',
           letterSpacing: '0.32em', marginTop: 16, textTransform: 'uppercase',
         }}>
-          ' 2 6
+          '26
         </div>
       </div>
 
