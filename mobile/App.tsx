@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import CardRevealScreen from './src/screens/CardRevealScreen';
+import MintConfirmScreen from './src/screens/MintConfirmScreen';
 import DebugAnalysisScreen from './src/screens/DebugAnalysisScreen';
 import type { RootStackParamList } from './src/types';
 import { colors } from './src/theme/tokens';
@@ -39,6 +40,7 @@ export default function App() {
         >
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="CardReveal" component={CardRevealScreen} />
+          <Stack.Screen name="MintConfirm" component={MintConfirmScreen} />
           <Stack.Screen name="Debug" component={DebugAnalysisScreen} />
         </Stack.Navigator>
       </NavigationContainer>

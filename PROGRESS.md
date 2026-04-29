@@ -267,3 +267,40 @@ confident voice ✓.
 - All 3 lines reference SAMO / 78 swaps because that's the most distinctive
   data point in the fetched window. With a wider window the engine has more
   to draw on.
+
+---
+
+## Phase 4 — Day 7: End-to-end Card Flow ✅
+
+**Definition of Done:**
+- [x] `CardRevealScreen` renders 3 cards via swipeable horizontal `FlatList`
+- [x] Loading state — gradient pulse + spinner + tx count
+- [x] `Card.tsx` is reusable + props-driven (full + mini variants)
+- [x] Pipeline runs end-to-end (mock-mode and real-LLM)
+- [x] `tsc --noEmit` passes, no type warnings
+- [x] Mint button stub navigates to `MintConfirmScreen` placeholder
+
+**Decisions:**
+- `Card.tsx` uses `aspectRatio: 9/14` so the same component sizes
+  correctly at full-screen, mini, or thumbnail (Phase 6 gallery) without
+  hardcoded heights.
+- Pixel icons reimplemented as a grid of absolutely-positioned `View`s
+  in `components/PixelIcon.tsx`. The web demo relies on `box-shadow`
+  multi-shadows which RN doesn't expose; the View-grid approach
+  preserves the same visual fidelity. Cells get a `+0.5dp` bleed to
+  avoid sub-pixel gaps on hi-DPI screens.
+- `CardRevealScreen` calls `generateAllInsights(analysis)` on mount,
+  not in `OnboardingScreen` — keeps the connect step responsive and
+  puts the slower step inside an obvious loader.
+- Mint button currently stubs a fake signature and routes to
+  `MintConfirmScreen`; Phase 5 swaps in the real mpl-bubblegum mint.
+- Long stats ("TOP 1%") use `adjustsFontSizeToFit` so the same stat slot
+  doesn't break for short ("847") and long values.
+
+**Visual delta vs screenshots/02_Card_Reveal.png:**
+- Faithful to spec: top label + WRAP/'26 + icon, big stat, hairline,
+  AI line, pubkey + wordmark footer, dots, Share + Mint CTAs.
+- Omitted the noise/grain inner overlay — overhead not justified for
+  sprint timing; gradient + shadow is already very close to the mark.
+- Sizes scale to mobile dp space (~390 × 844 on iPhone) rather than the
+  1080 × 2400 design canvas. Proportions match.

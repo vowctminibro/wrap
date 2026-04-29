@@ -1,53 +1,351 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  FlatList,
+  Dimensions,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ViewToken,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import type { RootStackParamList } from '../types';
-import { colors, fontSizes, spacing } from '../theme/tokens';
-import { shortenAddress } from '../lib/wallet';
+import Card from '../components/Card';
+import { generateAllInsights } from '../lib/insight-engine';
+import { colors, gradients, radius, spacing } from '../theme/tokens';
+import type { CardData, RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CardReveal'>;
 
-// Phase 1 placeholder. Real implementation lands in Phase 4 (Day 7) — pulls
-// 3 insights via the engine and renders a swipe-paged FlatList of cards.
-export default function CardRevealScreen({ route }: Props) {
+const SCREEN_W = Dimensions.get('window').width;
+const CARD_HORIZONTAL_PAD = spacing.lg;
+const CARD_TRACK_W = SCREEN_W; // each page snap == screen width
+
+export default function CardRevealScreen({ navigation, route }: Props) {
   const { publicKey, analysis } = route.params;
+  const [cards, setCards] = useState<CardData[] | null>(null);
+  const [page, setPage] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [minting, setMinting] = useState(false);
+  const listRef = useRef<FlatList<CardData>>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const insights = await generateAllInsights(analysis);
+        if (alive) setCards(insights);
+      } catch (e) {
+        if (alive) setError((e as Error).message);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [analysis]);
+
+  const onShare = () => {
+    const card = cards?.[page];
+    if (!card) return;
+    const text = `I'm a ${analysis.personality} on Solana. ${card.line} — wrap.app`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Share', 'Could not open share sheet.');
+    });
+  };
+
+  const onMint = async () => {
+    const card = cards?.[page];
+    if (!card) return;
+    setMinting(true);
+    // Phase 5 wires the real cNFT mint. For Phase 4 navigation, ship a stub
+    // signature so the destination screen renders the confirm flow.
+    setTimeout(() => {
+      setMinting(false);
+      navigation.navigate('MintConfirm', {
+        signature: 'stub_sig_phase4',
+        cardData: card,
+      });
+    }, 600);
+  };
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const first = viewableItems[0];
+      if (first && typeof first.index === 'number') setPage(first.index);
+    }
+  ).current;
+
+  const viewabilityConfig = useMemo(
+    () => ({ itemVisiblePercentThreshold: 60 }),
+    []
+  );
+
+  const onMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const i = Math.round(e.nativeEvent.contentOffset.x / CARD_TRACK_W);
+    setPage(i);
+  };
+
+  if (error) {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView style={styles.centered}>
+          <Text style={styles.errorTitle}>Something stopped working.</Text>
+          <Text style={styles.errorBody}>{error}</Text>
+          <Pressable onPress={() => navigation.goBack()} style={styles.errorBack}>
+            <Text style={styles.errorBackText}>Go back</Text>
+          </Pressable>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (!cards) {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView style={styles.centered}>
+          <View style={styles.loadingPulse} />
+          <ActivityIndicator color={colors.solanaRed} size="large" />
+          <Text style={styles.loadingTitle}>Analyzing your wallet…</Text>
+          <Text style={styles.loadingSub}>
+            Reading {analysis.totalTransactions.toLocaleString()} transactions.
+          </Text>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
-      <SafeAreaView style={styles.safe}>
-        <Text style={styles.label}>YOUR WRAPPED</Text>
-        <Text style={styles.headline}>Card flow lands Day 7.</Text>
-        <Text style={styles.sub}>Connected: {shortenAddress(publicKey)}</Text>
-        <Text style={styles.sub}>Personality: {analysis.personality}</Text>
-        <Text style={styles.sub}>Wallet age: {analysis.walletAgeDays}d</Text>
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Top bar */}
+        <View style={styles.topBar}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Text style={styles.backBtnText}>‹</Text>
+          </Pressable>
+          <Text style={styles.topLabel}>YOUR WRAPPED</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        {/* Card carousel */}
+        <FlatList
+          ref={listRef}
+          data={cards}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(c) => c.id}
+          snapToInterval={CARD_TRACK_W}
+          decelerationRate="fast"
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          renderItem={({ item }) => (
+            <View style={styles.cardSlot}>
+              <Card data={item} />
+            </View>
+          )}
+        />
+
+        {/* Dot indicator */}
+        <View style={styles.dots}>
+          {cards.map((_, i) => (
+            <Pressable
+              key={i}
+              onPress={() => listRef.current?.scrollToIndex({ index: i, animated: true })}
+              hitSlop={8}
+            >
+              {i === page ? (
+                <LinearGradient
+                  colors={gradients.primaryDuo as unknown as readonly [string, string, ...string[]]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.dotActive}
+                />
+              ) : (
+                <View style={styles.dot} />
+              )}
+            </Pressable>
+          ))}
+        </View>
+
+        {/* CTAs */}
+        <View style={styles.ctas}>
+          <Pressable onPress={onShare} style={styles.ctaShare}>
+            <LinearGradient
+              colors={gradients.primaryDuo as unknown as readonly [string, string, ...string[]]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.ctaShareGrad}
+            >
+              <Text style={styles.ctaText}>Share to 𝕏</Text>
+            </LinearGradient>
+          </Pressable>
+          <Pressable
+            onPress={onMint}
+            disabled={minting}
+            style={[styles.ctaMint, minting && styles.ctaMintDisabled]}
+          >
+            {minting ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <Text style={styles.ctaText}>Mint as NFT</Text>
+            )}
+          </Pressable>
+        </View>
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  safe: { flex: 1, padding: spacing.lg, justifyContent: 'center' },
-  label: {
+  root: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  loadingPulse: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: colors.solanaRed,
+    opacity: 0.15,
+  },
+  loadingTitle: {
+    color: colors.white,
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginTop: spacing.lg,
+  },
+  loadingSub: {
     color: colors.textSecondary,
-    fontSize: fontSizes.micro,
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: spacing.xs,
+  },
+  errorTitle: {
+    color: colors.white,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  errorBody: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  errorBack: {
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+  },
+  errorBackText: {
+    color: colors.white,
+    fontWeight: '700',
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.bgElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backBtnText: {
+    color: colors.white,
+    fontSize: 22,
+    fontWeight: '700',
+    marginTop: -2,
+  },
+  topLabel: {
+    color: colors.textSecondary,
+    fontSize: 12,
     fontWeight: '700',
     letterSpacing: 4,
-    textAlign: 'center',
   },
-  headline: {
-    color: colors.white,
-    fontSize: 32,
-    fontWeight: '900',
-    letterSpacing: -1,
-    textAlign: 'center',
-    marginTop: spacing.md,
+  cardSlot: {
+    width: CARD_TRACK_W,
+    paddingHorizontal: CARD_HORIZONTAL_PAD,
+    paddingVertical: spacing.sm,
+    justifyContent: 'center',
   },
-  sub: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
+  dots: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    gap: 8,
     marginTop: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.hairline,
+  },
+  dotActive: {
+    width: 26,
+    height: 10,
+    borderRadius: 5,
+  },
+  ctas: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  ctaShare: {
+    flex: 1,
+    height: 56,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+  },
+  ctaShareGrad: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaMint: {
+    flex: 1,
+    height: 56,
+    borderRadius: radius.pill,
+    borderWidth: 2,
+    borderColor: colors.hairline,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaMintDisabled: {
+    opacity: 0.5,
+  },
+  ctaText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
 });
