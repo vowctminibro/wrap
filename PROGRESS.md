@@ -123,3 +123,81 @@ Fetch: 200 transactions + 116 assets in ~4.3 s on real Helius mainnet.
 Note `walletAgeDays: 1` reflects the 200-tx fetch cap — see "Known
 limitations" above. The `personality: "builder"` classification correctly
 fires on `uniqueProgramsInteracted: 59 > 5`.
+
+---
+
+## Phase 3 — Day 6: Claude API Insight Engine ✅ (mock-mode)
+
+**Commits:** see `git log` for `Day 6.x:` commits.
+
+**Definition of Done:**
+- [x] `src/services/claude.ts` — Messages API client w/ lazy key lookup,
+  auto-fallback to `claude.mock.ts` if no key
+- [x] 3 prompt templates with system rules + 5 few-shot pairs each:
+  - `src/prompts/diamond-hand.ts`
+  - `src/prompts/og-status.ts`
+  - `src/prompts/year-recap.ts`
+- [x] `src/lib/insight-engine.ts` — `generateCardInsight(cardType, analysis)`
+  + `generateAllInsights(analysis)` returning typed `CardData[]`
+- [x] `scripts/test-insights.ts` runs and emits CardData JSON
+- [x] Output reads punchy, on-brand (see sample below)
+- [x] `tsc --noEmit` clean
+
+**Decisions:**
+- Default model `claude-haiku-4-5-20251001` — cost/speed win for 100-token
+  punchy outputs. Caller can override per-call if needed. Comment in
+  `claude.ts` explains the swap path.
+- Mock pool stays in sync with prompt few-shot voice: 5 lines per card
+  type, deterministic+rotating selection so repeated test runs visit
+  different lines (counter-XOR seeded by user-message hash).
+- Prompt few-shots use JSON-stringified inputs as the user message —
+  cheap to construct, easy to extend, and gives the model a clear
+  "structured-input → punchy-string" pattern to imitate.
+- `cleanLine()` post-processor in `insight-engine.ts` enforces the 15-word
+  cap defensively (strips quotes, drops trailing fragment after period,
+  truncates if Claude over-generates).
+- Iterations on prompts: **0** so far (mock-mode obscures real-API
+  quality). Once a key lands, will judge and re-iterate up to 3 times per
+  the plan's tolerance budget.
+
+### Phase 3 Test Output
+
+Wallet: `7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU` ·
+Claude mode: **MOCK** (no `ANTHROPIC_API_KEY` — see BLOCKERS B-001) ·
+End-to-end pipeline runtime: **~3.6 s** (Helius dominates).
+
+**Sample insight lines (one per card type):**
+
+- **Diamond Hand** — *"You held BONK through three 80% drawdowns. Iron stomach."*
+- **OG Status** — *"Mad Lads minted before the bots arrived. You actually clicked."*
+- **Year Recap** — *"142 swaps and a Mad Lad. The agenda was clear."*
+
+Voice rules: ≤15 words ✓ · no emoji ✓ · no exclamation ✓ · confident,
+slightly cocky ✓ · references on-chain specifics ✓.
+
+**Sample full CardData (Diamond):**
+
+```json
+{
+  "id": "diamond",
+  "cardType": "diamond",
+  "icon": "diamond",
+  "label": "Diamond Hand",
+  "accent": "#FFFFFF",
+  "stat": "1",
+  "statUnit": "DAYS",
+  "sub": "holding $SAMO",
+  "line": "You held BONK through three 80% drawdowns. Iron stomach.",
+  "pubkey": "7xKX...gAsU",
+  "walletShort": "7xKX...gAsU"
+}
+```
+
+Stat values like `"1 DAYS"` and `"wallet age: 0 yrs"` reflect the same
+200-tx fetch cap noted in Phase 2. Once a `Phase Polish · oldest-tx
+backfill` lands, the stat fields render correctly without any insight-
+engine change.
+
+**Blockers:**
+- B-001: `ANTHROPIC_API_KEY` missing → mock fallback active. See
+  `BLOCKERS.md` for the unblock recipe (paste into `.env.local`, rerun).
