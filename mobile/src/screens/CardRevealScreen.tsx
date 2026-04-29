@@ -8,7 +8,6 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
-  Linking,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type ViewToken,
@@ -19,6 +18,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import Card from '../components/Card';
 import { generateAllInsights } from '../lib/insight-engine';
+import { buildShareText, shareCardImage } from '../lib/share-card';
+import { mintCardAsCNFT } from '../services/cnft-mint';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { CardData, RootStackParamList } from '../types';
 
@@ -35,6 +36,9 @@ export default function CardRevealScreen({ navigation, route }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [minting, setMinting] = useState(false);
   const listRef = useRef<FlatList<CardData>>(null);
+  // One ref per rendered card. Populated via callback ref so we can
+  // capture the currently-visible card with view-shot at Share time.
+  const cardRefs = useRef<Array<View | null>>([]);
 
   useEffect(() => {
     let alive = true;
@@ -51,29 +55,37 @@ export default function CardRevealScreen({ navigation, route }: Props) {
     };
   }, [analysis]);
 
-  const onShare = () => {
+  const onShare = async () => {
     const card = cards?.[page];
     if (!card) return;
-    const text = `I'm a ${analysis.personality} on Solana. ${card.line} — wrap.app`;
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-    Linking.openURL(url).catch(() => {
+    const text = buildShareText(analysis.personality, card.line);
+    const view = cardRefs.current[page];
+    const result = await shareCardImage(view ?? null, text);
+    if (!result.shared) {
       Alert.alert('Share', 'Could not open share sheet.');
-    });
+    }
   };
 
   const onMint = async () => {
     const card = cards?.[page];
     if (!card) return;
     setMinting(true);
-    // Phase 5 wires the real cNFT mint. For Phase 4 navigation, ship a stub
-    // signature so the destination screen renders the confirm flow.
-    setTimeout(() => {
-      setMinting(false);
+    try {
+      const view = cardRefs.current[page];
+      const result = await mintCardAsCNFT({
+        cardData: card,
+        walletAddress: publicKey,
+        cardView: view ?? null,
+      });
       navigation.navigate('MintConfirm', {
-        signature: 'stub_sig_phase4',
+        signature: result.signature,
         cardData: card,
       });
-    }, 600);
+    } catch (e) {
+      Alert.alert('Mint', (e as Error).message);
+    } finally {
+      setMinting(false);
+    }
   };
 
   const onViewableItemsChanged = useRef(
@@ -147,8 +159,14 @@ export default function CardRevealScreen({ navigation, route }: Props) {
           onMomentumScrollEnd={onMomentumScrollEnd}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
-          renderItem={({ item }) => (
-            <View style={styles.cardSlot}>
+          renderItem={({ item, index }) => (
+            <View
+              collapsable={false}
+              ref={(r) => {
+                cardRefs.current[index] = r;
+              }}
+              style={styles.cardSlot}
+            >
               <Card data={item} />
             </View>
           )}

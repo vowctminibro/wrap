@@ -304,3 +304,57 @@ confident voice ✓.
   sprint timing; gradient + shadow is already very close to the mark.
 - Sizes scale to mobile dp space (~390 × 844 on iPhone) rather than the
   1080 × 2400 design canvas. Proportions match.
+
+---
+
+## Phase 5 — Day 8: Share-to-X + cNFT Mint ⚠️ stub (per plan rule)
+
+**Definition of Done:**
+- [x] Share button captures the visible card and opens system share sheet;
+  falls back to text-only X intent when image share unavailable
+- [⚠️] Merkle tree on devnet — **stubbed** because devnet faucet returned
+  HTTP 403 "Rate limit exceeded" on every retry. Logged as B-002.
+- [x] `cnft-mint.ts` compiles end-to-end. Full production code path is
+  written (capture → metadata → `mintV1`) with a documented MWA→umi
+  signer-bridge gap; stub path returns deterministic fake signatures so
+  the demo flow is exercised.
+- [x] `MintConfirmScreen` matches Screen 3 — confetti, ambient glow,
+  green "CONFIRMED" pill, mini glowing card, "Your story is on-chain.",
+  View on Solscan + Share again CTAs.
+- [x] `tsc --noEmit` clean across all of Phase 5.
+
+**Decisions:**
+- Share sheet path is `view-shot.captureRef` → `expo-sharing.shareAsync`.
+  On platforms where `expo-sharing` is unavailable we open
+  `https://twitter.com/intent/tweet?text=…` as a text-only fallback so
+  the button never feels dead.
+- Each `Card` in the swipe list is wrapped in a `<View collapsable={false}
+  ref>` so view-shot can grab the currently-visible card by index.
+- `Confetti` pieces are pre-generated with a seeded RNG (count 60) so the
+  layout is stable across renders and the screen doesn't reflow on every
+  pressable interaction.
+- `cnft-mint.ts` exposes one entry point (`mintCardAsCNFT`) and routes
+  internally between `mintLive` and `makeStubResult`. The dispatch
+  predicate is `EXPO_PUBLIC_MERKLE_TREE_PUBKEY` shape: a real base58
+  pubkey activates live; anything starting `stub_` keeps stub path.
+- `MintConfirmScreen` shows a small italic "demo mint · no real tx"
+  banner under the headline whenever the signature is a stub, so testers
+  aren't confused into clicking Solscan and seeing a 404.
+- `View on Solscan` opens devnet Solscan (`?cluster=devnet`), with an
+  Alert short-circuit on stub signatures.
+
+### Phase 5 Merkle Tree status
+
+- **Tree pubkey:** *not yet created*. `mobile/.env.local` holds the
+  placeholder `EXPO_PUBLIC_MERKLE_TREE_PUBKEY=stub_phase5_no_devnet_sol`.
+- **Payer keypair:** `6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx`
+  (loaded from `~/.config/solana/devnet.json`)
+- **Balance:** 0.0000 SOL on devnet
+- **Blocker:** B-002 — public devnet faucet rate-limit. Helius devnet
+  RPC returned the same 403. Manual fund via https://faucet.solana.com
+  unblocks; rerun `NODE_PATH=mobile/node_modules npx tsx scripts/setup-merkle-tree.ts`.
+
+**Pinata upload status:** not implemented in this phase. Demo path uses
+the captured PNG locally (FileSystem cache) and submits a
+`placeholder://wrap-card` URI to the metadata. Real image hosting is a
+Phase Polish task; logging a future B-003 when we get there.
