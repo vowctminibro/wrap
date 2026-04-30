@@ -42,25 +42,27 @@ hand-crafted mock pool (ultimate fallback)**. Both Gemini and Groq run
 on free tier with 10 s timeout per provider; both keys provided
 mid-sprint. Real prose now ships.
 
-### B-002 · Devnet faucet rate-limited (still active at sprint close)
+### B-002 · Devnet faucet rate-limited — **RESOLVED 2026-04-30**
 
 The configured devnet keypair
-`6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx` has 0 SOL. Both the
-public `api.devnet.solana.com` faucet and the Helius devnet RPC
-returned `403 Rate limit exceeded` at every airdrop amount tried (1,
-0.5, 0.25 SOL).
+`6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx` was at 0 SOL through
+sprint close. Both the public `api.devnet.solana.com` faucet and the
+Helius devnet RPC returned `403 Rate limit exceeded` at every airdrop
+amount (1, 0.5, 0.25 SOL).
 
-**Resolution.** Per the sprint rule "fail → log + stub + continue":
-- `cnft-mint.ts` was built with the full production code path
-  (capture → metadata → mpl-bubblegum `mintV1`) but routes to a stub
-  signature path whenever `EXPO_PUBLIC_MERKLE_TREE_PUBKEY` starts with
-  `stub_`. Demo flow runs end-to-end.
-- `MintConfirmScreen` shows a small italic "demo mint · no real tx"
-  banner under stub signatures so testers don't expect Solscan to
-  resolve.
-- Manual unblock is documented in `BLOCKERS.md` and again in
-  `HERMES_HANDOFF.md` Task 1. Faucet via web (different rate-limit
-  pool than RPC airdrop) is the recommended path.
+**Initial workaround (sprint close).** `cnft-mint.ts` shipped with the
+full mintV1 code path but stubbed at runtime when
+`EXPO_PUBLIC_MERKLE_TREE_PUBKEY` started with `stub_`.
+
+**Resolution.** Hermes operator funded the keypair via
+`https://faucet.solana.com` (browser, sybil-checked with a 0.001 SOL
+mainnet seed — different rate-limit pool than the RPC airdrop), 2.5
+SOL granted. `setup-merkle-tree.ts` then created the real tree
+(`maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3`) and the stub branch
+was removed from `cnft-mint.ts`. First on-chain mint
+(`623oSFKAJzsq4TB9MY4bz48gDYVQZYJ5zEpowjZmBFFRwgTnkMkZ8uALjiuLYuinKGiY3zM1YCKQWBdbYrywyf4f`)
+confirmed in 1.5 s. Banner removed from `MintConfirmScreen`. See
+`PROGRESS.md` § "Phase 5.live Verification" for full output.
 
 ### B-003 · Pinata image hosting not yet implemented
 
@@ -71,17 +73,22 @@ points to the placeholder `placeholder://wrap-card` URI.
 once the JWT lands in `mobile/.env.local` the unblock is purely
 adding a `pinFile` helper inside `cnft-mint.ts`.
 
-### MWA → umi signer bridge gap
+### MWA → umi signer bridge gap — sidestepped via embedded delegate
 
-`mpl-bubblegum 5.x` doesn't ship an adapter that lets a Mobile Wallet
-Adapter session present itself as an umi `Signer`. Even with a funded
-tree, on-device live mint requires writing a small wrapper that
-satisfies umi's `Signer` interface by routing
-`signMessage` / `signTransaction` through MWA's `transact()`.
+`mpl-bubblegum 5.x` doesn't ship an adapter to wrap a Mobile Wallet
+Adapter session as a umi `Signer`. The deeper architectural reality
+is that even with a perfect bridge, the **mobile user's MWA wallet
+isn't the tree authority** — only the tree creator/delegate keypair
+can sign mint instructions for our shared tree.
 
-**Resolution.** The `mintLive` path throws explicitly with that exact
-message rather than silently faking success, so a misconfigured env
-can't pretend to mint. Building the bridge is a Phase Polish task.
+**Resolution.** The tree-delegate keypair is bundled into the app via
+`EXPO_PUBLIC_WRAP_DELEGATE_SECRET` (base64 64-byte secret). On mint,
+`cnft-mint.ts` attaches it as the umi keypair identity so it signs
+both the payer and treeCreatorOrDelegate slots; the user's MWA pubkey
+is the leaf owner. This **leaks the secret on apk decompile** —
+acceptable on devnet where SOL is valueless and the tree is rotatable.
+Production migration is a backend signer service holding the keypair
+server-side; documented in the file header.
 
 ---
 
@@ -92,7 +99,8 @@ can't pretend to mint. Building the bridge is a Phase Polish task.
 | `EXPO_PUBLIC_HELIUS_KEY` | provided mid-sprint | **live** — wallet history flowing from mainnet |
 | `EXPO_PUBLIC_GEMINI_KEY` | provided mid-sprint | **live** — primary LLM |
 | `EXPO_PUBLIC_GROQ_KEY` | provided mid-sprint | **live** — fallback LLM |
-| `EXPO_PUBLIC_MERKLE_TREE_PUBKEY` | not yet created | placeholder `stub_phase5_no_devnet_sol` — see B-002 |
+| `EXPO_PUBLIC_MERKLE_TREE_PUBKEY` | created Day 9.live | **live** — `maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3` |
+| `EXPO_PUBLIC_WRAP_DELEGATE_SECRET` | local devnet keypair (b64) | **live** — signs mints; rotatable |
 | `EXPO_PUBLIC_PINATA_JWT` | pending Hermes Task 2 | not present — cNFT uses placeholder URI |
 | `EXPO_PUBLIC_PINATA_GATEWAY` | pending Hermes Task 2 | not present |
 | (legacy `ANTHROPIC_API_KEY`) | obsolete | not used; replaced by Gemini/Groq |
@@ -134,13 +142,11 @@ passed.
 - Gallery, affiliate links, navigation
 
 Pieces that **need the unblock work** to flip live:
-- cNFT mint actually transacting on devnet (needs B-002 funding +
-  MWA→umi signer bridge)
-- cNFT metadata image pointing to a real IPFS URL (needs B-003 Pinata
-  JWT)
-
-Until those land, `Mint as NFT` runs the stub path on device too. The
-banner makes that clear in the UI.
+- ~~cNFT mint actually transacting on devnet~~ — **resolved Day 9.live**
+  via Hermes-funded keypair + real tree + bundled delegate secret.
+  First mint sig recorded in `PROGRESS.md`.
+- cNFT metadata image pointing to a real IPFS URL — pending Hermes
+  Task 2 (Pinata JWT). Code path already wired; flips on automatically.
 
 ### Known data limitations (not bugs, document as caveats)
 

@@ -417,7 +417,74 @@ clearly which pieces are stub vs live"):
 | MWA wallet connect | **WIRED** — compiles; runs on Seeker / Android only |
 | view-shot card capture | **LIVE** — works in tsc-verified path; needs device to fully validate |
 | expo-sharing share sheet | **LIVE** — text-intent fallback for unsupported platforms |
-| Devnet Merkle tree | **STUB** — B-002, no devnet SOL |
-| cNFT on-chain mint | **STUB** — same root cause + MWA→umi signer bridge |
-| Pinata image hosting | **NOT WIRED** — pending Hermes JWT |
+| Devnet Merkle tree | **LIVE** — flipped Day 9.live; see verification below |
+| cNFT on-chain mint | **LIVE** — flipped Day 9.live; real signature verified |
+| Pinata image hosting | **NOT WIRED** — pending Hermes Task 2 (code path ready) |
 | Affiliate links | **LIVE** — open the right partner with `?ref=WRAP_SOL` |
+
+---
+
+## Phase 5.live Verification (2026-04-30)
+
+Hermes Task 1 cleared the devnet faucet block; rest happened from
+this session.
+
+**Tree creation** — `scripts/setup-merkle-tree.ts`, real on-chain:
+
+```
+[wrap] using payer 6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx
+[wrap] balance: 2.5000 SOL
+[wrap] creating tree maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3…
+[wrap] tree created. tx: 2QXJAh7aobVWk7XfkQq1uAwWyfXep9xxScEb69gG8A78adBxZ9AqhAPGZLPKZKHDFNGL6egaQJ4DNijcrFHarDRh
+[wrap] pubkey: maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3
+[wrap] saved EXPO_PUBLIC_MERKLE_TREE_PUBKEY to /Users/mini/Projects/wrap/mobile/.env.local
+```
+
+Tree config: depth 14, buffer 64 (capacity 16,384 leaves). Cost ≈
+0.085 SOL.
+
+**First mint** — `scripts/test-mint.ts`, the same code path the mobile
+app calls:
+
+```
+[wrap] payer / tree authority: 6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx
+[wrap] leaf owner:             6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx
+[wrap] tree:                   maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3
+[wrap] sending transaction…
+[wrap] ✓ minted in 1526ms
+[wrap] signature: 623oSFKAJzsq4TB9MY4bz48gDYVQZYJ5zEpowjZmBFFRwgTnkMkZ8uALjiuLYuinKGiY3zM1YCKQWBdbYrywyf4f
+[wrap] solscan:   https://solscan.io/tx/623oSFKAJzsq4TB9MY4bz48gDYVQZYJ5zEpowjZmBFFRwgTnkMkZ8uALjiuLYuinKGiY3zM1YCKQWBdbYrywyf4f?cluster=devnet
+```
+
+```json
+{
+  "signature": "623oSFKAJzsq4TB9MY4bz48gDYVQZYJ5zEpowjZmBFFRwgTnkMkZ8uALjiuLYuinKGiY3zM1YCKQWBdbYrywyf4f",
+  "leafOwner": "6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx",
+  "tree": "maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3",
+  "cardLabel": "Diamond Hand",
+  "elapsedMs": 1526,
+  "solscan": "https://solscan.io/tx/623oSFKAJzsq4TB9MY4bz48gDYVQZYJ5zEpowjZmBFFRwgTnkMkZ8uALjiuLYuinKGiY3zM1YCKQWBdbYrywyf4f?cluster=devnet"
+}
+```
+
+**Architecture decision (logged for the record):** the tree's
+creator/delegate is the local devnet keypair. The mobile user's MWA
+wallet is the leaf owner — they receive the cNFT but they don't sign
+tree-level operations. Without a backend signer, the mint requires the
+delegate keypair to be loaded into the app at build time
+(`EXPO_PUBLIC_WRAP_DELEGATE_SECRET`, base64 64-byte secret). This
+**leaks** to anyone who decompiles the apk; acceptable here because
+the tree is on devnet and the SOL has zero value, and the tree can be
+rotated by re-running `setup-merkle-tree.ts` at any time. Production
+move is a small backend signer service that holds the keypair
+server-side and exposes a sign-and-submit endpoint. Cleanly logged in
+the file's header docstring so future work knows the gap.
+
+**Pinata status:** Hermes Task 2 (Pinata sign-up + JWT) is still TODO
+in `HERMES_HANDOFF.md`. The `pinImageToPinata` helper inside
+`cnft-mint.ts` is already wired — it no-ops and returns the
+`placeholder://wrap-card` sentinel when `EXPO_PUBLIC_PINATA_JWT` is
+missing, so the on-chain mint succeeds either way. The moment a JWT
+lands in `mobile/.env.local`, the next mint will pin the captured PNG
+to IPFS and store the resolvable gateway URL in the cNFT metadata —
+no code change required.
