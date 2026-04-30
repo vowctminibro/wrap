@@ -33,20 +33,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MintConfirm'>;
 const SOLSCAN_DEVNET = (sig: string) =>
   `https://solscan.io/tx/${sig}?cluster=devnet`;
 
-const isStubSig = (sig: string) => sig.startsWith('STUB') || sig.includes('stub');
-
 export default function MintConfirmScreen({ navigation, route }: Props) {
   const { signature, cardData } = route.params;
   const cardWrapRef = useRef<View>(null);
 
   const onSolscan = async () => {
-    if (isStubSig(signature)) {
-      Alert.alert(
-        'Solscan',
-        'Demo mint — no on-chain tx exists yet. See BLOCKERS B-002 to fund the devnet keypair and unlock the live path.'
-      );
-      return;
-    }
     const url = SOLSCAN_DEVNET(signature);
     try {
       await Linking.openURL(url);
@@ -102,13 +93,7 @@ export default function MintConfirmScreen({ navigation, route }: Props) {
           <Text style={styles.sub}>
             cNFT minted to <Text style={styles.subMono}>{cardData.pubkey}</Text>
           </Text>
-          {isStubSig(signature) ? (
-            <Text style={styles.stubBadge}>
-              demo mint · no real tx (devnet faucet rate-limited)
-            </Text>
-          ) : (
-            <Text style={styles.sigText}>tx: {shorten(signature)}</Text>
-          )}
+          <Text style={styles.sigText}>tx: {shorten(signature)}</Text>
         </View>
 
         {/* CTAs */}
@@ -239,13 +224,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Courier',
     marginTop: 6,
-  },
-  stubBadge: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontStyle: 'italic',
-    marginTop: 6,
-    textAlign: 'center',
   },
   ctas: {
     flexDirection: 'row',

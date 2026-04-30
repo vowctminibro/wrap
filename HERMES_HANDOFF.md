@@ -5,7 +5,7 @@ Claude Code to "read HERMES_HANDOFF.md and continue." Anything still set
 to `TODO` is treated as not-yet-done and the corresponding Claude-side
 task stays stubbed.
 
-Last updated: TODO (Hermes: ISO timestamp on save)
+Last updated: 2026-04-30T17:44:00+07:00
 
 ---
 
@@ -19,19 +19,21 @@ Faucet attempts (in order):
 
 | # | Faucet | Status | Amount granted | Tx hash |
 |---|--------|--------|----------------|---------|
-| 1 | https://faucet.solana.com | TODO (success / rate-limited / captcha-blocked / other) | TODO SOL | TODO |
-| 2 | https://www.alchemy.com/faucets/solana-devnet | TODO | TODO | TODO |
-| 3 | https://faucet.quicknode.com/solana/devnet | TODO | TODO | TODO |
-| 4 | https://solfaucet.com | TODO | TODO | TODO |
+| 1 | https://faucet.solana.com | success (after 0.001 SOL mainnet seed for sybil check) | 2.5 SOL | — |
+| 2 | https://www.alchemy.com/faucets/solana-devnet | not attempted | — | — |
+| 3 | https://faucet.quicknode.com/solana/devnet | not attempted | — | — |
+| 4 | https://solfaucet.com | not attempted | — | — |
 
 **Final on-chain balance** (verify via
 https://explorer.solana.com/address/6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx?cluster=devnet):
-TODO SOL
+2.5 SOL
 
-**Threshold met (≥ 1.5 SOL)?** TODO yes / no
+**Threshold met (≥ 1.5 SOL)?** yes
+
+**Status:** complete
 
 **Notes / anything weird** (faucet errors, captcha behavior, etc.):
-TODO
+faucet.solana.com required a 0.001 SOL mainnet seed first to pass sybil check, then granted 2.5 SOL devnet on first try.
 
 ---
 
