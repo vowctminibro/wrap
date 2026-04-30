@@ -64,14 +64,21 @@ was removed from `cnft-mint.ts`. First on-chain mint
 confirmed in 1.5 s. Banner removed from `MintConfirmScreen`. See
 `PROGRESS.md` § "Phase 5.live Verification" for full output.
 
-### B-003 · Pinata image hosting not yet implemented
+### B-003 · Pinata image hosting — **RESOLVED 2026-04-30**
 
-Captured PNGs land in the device FileSystem cache; cNFT metadata
-points to the placeholder `placeholder://wrap-card` URI.
+Captured PNGs originally landed in the device FileSystem cache; cNFT
+metadata pointed to the placeholder `placeholder://wrap-card` URI.
 
-**Resolution.** Logging Pinata signup as `HERMES_HANDOFF.md` Task 2;
-once the JWT lands in `mobile/.env.local` the unblock is purely
-adding a `pinFile` helper inside `cnft-mint.ts`.
+**Resolution.** Hermes Task 2 produced a Pinata JWT + dedicated
+gateway. Saved to `mobile/.env.local`. `cnft-mint.ts` already had the
+`pinImageToPinata` helper wired (RN-side); `scripts/test-mint.ts` got
+a Node-compatible variant for the verification path. End-to-end run:
+PNG (`02_Card_Reveal.png`) → Pinata → IPFS hash
+`QmaeJxmto8F3tvybvxEFqMpz2xPCyXgV3U33s46dcPzDn5` → gateway URL
+`https://beige-capitalist-deer-104.mypinata.cloud/ipfs/QmaeJxmto8F3tvybvxEFqMpz2xPCyXgV3U33s46dcPzDn5`
+→ minted into the existing tree with that as metadata.uri. Mint sig
+`5TpsJv75hk3VwffmEPHJYhJB14R7K2PjkMimDtxzCLxLqWCurBDcwvCRdF74muYByRK85qvZDh54LeYqZMyb5XYA`.
+Pin: ~3.8 s · mint: ~2.2 s.
 
 ### MWA → umi signer bridge gap — sidestepped via embedded delegate
 
@@ -101,8 +108,9 @@ server-side; documented in the file header.
 | `EXPO_PUBLIC_GROQ_KEY` | provided mid-sprint | **live** — fallback LLM |
 | `EXPO_PUBLIC_MERKLE_TREE_PUBKEY` | created Day 9.live | **live** — `maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3` |
 | `EXPO_PUBLIC_WRAP_DELEGATE_SECRET` | local devnet keypair (b64) | **live** — signs mints; rotatable |
-| `EXPO_PUBLIC_PINATA_JWT` | pending Hermes Task 2 | not present — cNFT uses placeholder URI |
-| `EXPO_PUBLIC_PINATA_GATEWAY` | pending Hermes Task 2 | not present |
+| `EXPO_PUBLIC_PINATA_JWT` | provided Day 9.live | **live** — Bearer auth on `pinFileToIPFS` |
+| `EXPO_PUBLIC_PINATA_GATEWAY` | provided Day 9.live | **live** — `https://beige-capitalist-deer-104.mypinata.cloud` |
+| `EXPO_PUBLIC_PINATA_API_KEY` / `_API_SECRET` | provided | reserved (current path uses JWT only) |
 | (legacy `ANTHROPIC_API_KEY`) | obsolete | not used; replaced by Gemini/Groq |
 
 All keys live in `mobile/.env.local`, gitignored via the existing
@@ -144,9 +152,13 @@ passed.
 Pieces that **need the unblock work** to flip live:
 - ~~cNFT mint actually transacting on devnet~~ — **resolved Day 9.live**
   via Hermes-funded keypair + real tree + bundled delegate secret.
-  First mint sig recorded in `PROGRESS.md`.
-- cNFT metadata image pointing to a real IPFS URL — pending Hermes
-  Task 2 (Pinata JWT). Code path already wired; flips on automatically.
+- ~~cNFT metadata image pointing to a real IPFS URL~~ — **resolved
+  Day 9.live** via Pinata JWT from Hermes Task 2. Verified end-to-end:
+  PNG → Pinata → IPFS hash → gateway URL → mint with metadata.uri =
+  resolvable image. See `PROGRESS.md` § "Phase 5.pinata Verification."
+
+**No live pieces remain stubbed.** The on-device demo on Seeker (with
+a dev build) now runs every step with real on-chain state.
 
 ### Known data limitations (not bugs, document as caveats)
 

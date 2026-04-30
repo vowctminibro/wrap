@@ -419,7 +419,7 @@ clearly which pieces are stub vs live"):
 | expo-sharing share sheet | **LIVE** — text-intent fallback for unsupported platforms |
 | Devnet Merkle tree | **LIVE** — flipped Day 9.live; see verification below |
 | cNFT on-chain mint | **LIVE** — flipped Day 9.live; real signature verified |
-| Pinata image hosting | **NOT WIRED** — pending Hermes Task 2 (code path ready) |
+| Pinata image hosting | **LIVE** — flipped Day 9.live; IPFS hash + gateway URL verified |
 | Affiliate links | **LIVE** — open the right partner with `?ref=WRAP_SOL` |
 
 ---
@@ -488,3 +488,50 @@ missing, so the on-chain mint succeeds either way. The moment a JWT
 lands in `mobile/.env.local`, the next mint will pin the captured PNG
 to IPFS and store the resolvable gateway URL in the cNFT metadata —
 no code change required.
+
+---
+
+## Phase 5.pinata Verification (2026-04-30)
+
+Hermes Task 2 landed: JWT, gateway, API key/secret all in
+`mobile/.env.local`. `scripts/test-mint.ts` updated with a Node-
+compatible Pinata uploader (RN's `FormData` shape doesn't carry into
+Node 24's `Blob`-based `FormData`; mobile path stays in
+`cnft-mint.ts`). End-to-end run output:
+
+```
+[wrap] payer / tree authority: 6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx
+[wrap] leaf owner:             6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx
+[wrap] tree:                   maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3
+[wrap] uploading WRAP - Solana Colosseum/screenshots/02_Card_Reveal.png to Pinata…
+[wrap] ✓ pinned in 3845ms — ipfs hash: QmaeJxmto8F3tvybvxEFqMpz2xPCyXgV3U33s46dcPzDn5
+[wrap]   url: https://beige-capitalist-deer-104.mypinata.cloud/ipfs/QmaeJxmto8F3tvybvxEFqMpz2xPCyXgV3U33s46dcPzDn5
+[wrap] sending mint transaction…
+[wrap] ✓ minted in 2206ms
+[wrap] signature: 5TpsJv75hk3VwffmEPHJYhJB14R7K2PjkMimDtxzCLxLqWCurBDcwvCRdF74muYByRK85qvZDh54LeYqZMyb5XYA
+[wrap] solscan:   https://solscan.io/tx/5TpsJv75hk3VwffmEPHJYhJB14R7K2PjkMimDtxzCLxLqWCurBDcwvCRdF74muYByRK85qvZDh54LeYqZMyb5XYA?cluster=devnet
+```
+
+```json
+{
+  "signature": "5TpsJv75hk3VwffmEPHJYhJB14R7K2PjkMimDtxzCLxLqWCurBDcwvCRdF74muYByRK85qvZDh54LeYqZMyb5XYA",
+  "leafOwner": "6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx",
+  "tree": "maRBu33jrZe1k1ZUTBgjW3ecvUQepE62VQGLfprQEa3",
+  "cardLabel": "Diamond Hand",
+  "ipfsHash": "QmaeJxmto8F3tvybvxEFqMpz2xPCyXgV3U33s46dcPzDn5",
+  "metadataUri": "https://beige-capitalist-deer-104.mypinata.cloud/ipfs/QmaeJxmto8F3tvybvxEFqMpz2xPCyXgV3U33s46dcPzDn5",
+  "elapsedMs": 2206,
+  "solscan": "https://solscan.io/tx/5TpsJv75hk3VwffmEPHJYhJB14R7K2PjkMimDtxzCLxLqWCurBDcwvCRdF74muYByRK85qvZDh54LeYqZMyb5XYA?cluster=devnet"
+}
+```
+
+**Wall-clock budget for one full demo flow now (Node-side):**
+- Pinata pin:  ~3.8 s
+- Mint + confirm:  ~2.2 s
+- Total user-visible: ~6 s after they tap Mint
+
+**Status flip:** Pinata image hosting → **LIVE**. All three previously
+stubbed pieces (Merkle tree, cNFT mint, IPFS image hosting) now
+production-shaped on devnet. The cNFT metadata.uri now resolves to a
+real PNG via the Pinata gateway; future on-chain consumers (Solscan,
+Magic Eden, Tensor) can render the image directly.

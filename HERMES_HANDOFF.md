@@ -5,7 +5,7 @@ Claude Code to "read HERMES_HANDOFF.md and continue." Anything still set
 to `TODO` is treated as not-yet-done and the corresponding Claude-side
 task stays stubbed.
 
-Last updated: 2026-04-30T17:44:00+07:00
+Last updated: 2026-04-30T18:15:00+07:00
 
 ---
 
@@ -39,27 +39,32 @@ faucet.solana.com required a 0.001 SOL mainnet seed first to pass sybil check, t
 
 ## Task 2 — Pinata account + JWT
 
-Account email used: TODO
+Account email used: vowctminibro@gmail.com
 Project name set in Pinata UI: WRAP
 
 API key created (https://app.pinata.cloud/developers/api-keys):
 - Key name: WRAP-hackathon
 - Permissions enabled: `pinFileToIPFS`, `pinJSONToIPFS`
-- Created at: TODO (ISO timestamp)
+- Created at: 2026-04-30T18:00:00+07:00
+
+**API Key:** `532a92c08552e7c612cd`
+**API Secret:** `bd19c44a414e0a9990c0041b282cdf7e853e2e9877d79127d75845d74b35e2fb`
 
 **JWT** (long string starting with `eyJ...`, only shown once — paste below):
 
 ```
-TODO_JWT_HERE
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI2NGY0ZjcxYy00ODI1LTRhMDctOGMxMS03OWNlMmYzNzQzMzUiLCJlbWFpbCI6InZvd2N0bWluaWJyb0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiNTMyYTkyYzA4NTUyZTdjNjEyY2QiLCJzY29wZWRLZXlTZWNyZXQiOiJiZDE5YzQ0YTQxNGUwYTk5OTBjMDA0MWIyODJjZGY3ZTg1M2UyZTk4NzdkNzkxMjdkNzU4NDVkNzRiMzVlMmZiIiwiZXhwIjoxODA5MDkzNTQxfQ.uaWp1Q7c_btjCc5TEiYviTsyYio_WDHisfr5S3u3CZQ
 ```
 
 **Gateway URL** (looks like `https://<adjective>-<adjective>-<animal>-NNN.mypinata.cloud`):
 
 ```
-TODO_GATEWAY_HERE
+https://beige-capitalist-deer-104.mypinata.cloud
 ```
 
-**Notes:** TODO (anything quirky during signup, account verification, etc.)
+**Status:** complete ✓
+
+**Notes:** Sign-in via Google OAuth (vowctminibro@gmail.com). Onboarding form required role/project type/discovery before dashboard access. MUI checkbox click via CDP failed (modal re-mount issue) — Vow toggled `pinFileToIPFS` + `pinJSONToIPFS` manually and pasted credentials. JWT exp=1809093541 (≈ Apr 2027, 1 year). Gateway URL still needs to be grabbed from the Pinata dashboard's "Gateways" section.
 
 ---
 
