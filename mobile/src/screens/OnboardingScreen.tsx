@@ -66,6 +66,36 @@ const FloatingPreview = ({
 export default function OnboardingScreen({ navigation }: Props) {
   const [connecting, setConnecting] = useState(false);
 
+  const analyzeAndNavigate = async (publicKey: string) => {
+    let transactions, assets;
+    try {
+      [transactions, assets] = await Promise.all([
+        getWalletTransactions(publicKey, 200),
+        getAllAssets(publicKey),
+      ]);
+    } catch (e) {
+      // Helius timeout / rate-limit / network — surface a clean message
+      // and let the user retry instead of dying on a raw error string.
+      Alert.alert(
+        'Wallet history unavailable',
+        'Could not reach the indexer. Check your connection and try again.'
+      );
+      return;
+    }
+
+    const analysis = analyzeWallet({ address: publicKey, transactions, assets });
+
+    if (analysis.totalTransactions === 0) {
+      Alert.alert(
+        'New wallet',
+        "We couldn't find any on-chain history for this wallet yet. WRAP works best after a few transactions."
+      );
+      return;
+    }
+
+    navigation.navigate('CardReveal', { publicKey, analysis });
+  };
+
   const onConnect = async () => {
     setConnecting(true);
     try {
@@ -73,37 +103,22 @@ export default function OnboardingScreen({ navigation }: Props) {
         Platform.OS === 'android'
           ? (await connectWallet()).publicKey
           : DEV_FALLBACK_PUBKEY;
-
-      let transactions, assets;
-      try {
-        [transactions, assets] = await Promise.all([
-          getWalletTransactions(publicKey, 200),
-          getAllAssets(publicKey),
-        ]);
-      } catch (e) {
-        // Helius timeout / rate-limit / network — surface a clean message
-        // and let the user retry instead of dying on a raw error string.
-        Alert.alert(
-          'Wallet history unavailable',
-          'Could not reach the indexer. Check your connection and try again.'
-        );
-        return;
-      }
-
-      const analysis = analyzeWallet({ address: publicKey, transactions, assets });
-
-      if (analysis.totalTransactions === 0) {
-        Alert.alert(
-          'New wallet',
-          "We couldn't find any on-chain history for this wallet yet. WRAP works best after a few transactions."
-        );
-        return;
-      }
-
-      navigation.navigate('CardReveal', { publicKey, analysis });
+      await analyzeAndNavigate(publicKey);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Wallet connection failed';
       Alert.alert('Connect Wallet', msg);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  // Demo / emulator path: skip MWA entirely, run the same analysis +
+  // insight pipeline against the well-known Helius docs example wallet.
+  // Lets us exercise the full UX without a Phantom dep.
+  const onTrySample = async () => {
+    setConnecting(true);
+    try {
+      await analyzeAndNavigate(DEV_FALLBACK_PUBKEY);
     } finally {
       setConnecting(false);
     }
@@ -178,6 +193,14 @@ export default function OnboardingScreen({ navigation }: Props) {
               <Text style={styles.ctaText}>Connect Wallet</Text>
             )}
           </LinearGradient>
+        </Pressable>
+
+        <Pressable
+          onPress={onTrySample}
+          disabled={connecting}
+          style={({ pressed }) => [styles.ctaSample, pressed && styles.ctaPressed]}
+        >
+          <Text style={styles.ctaSampleText}>Try with sample wallet</Text>
         </Pressable>
 
         <Text style={styles.poweredBy}>Powered by Solana</Text>
@@ -300,6 +323,22 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     letterSpacing: -0.5,
+  },
+  ctaSample: {
+    height: 48,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: colors.solanaRed,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  ctaSampleText: {
+    color: colors.solanaRed,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   poweredBy: {
     textAlign: 'center',

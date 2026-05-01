@@ -535,3 +535,60 @@ stubbed pieces (Merkle tree, cNFT mint, IPFS image hosting) now
 production-shaped on devnet. The cNFT metadata.uri now resolves to a
 real PNG via the Pinata gateway; future on-chain consumers (Solscan,
 Magic Eden, Tensor) can render the image directly.
+
+---
+
+## Phase 6.emulator Verification (2026-05-01)
+
+**Plan C** — emulator-only run, no Phantom dep. Phantom APK install
+was blocked by third-party download issues; MWA signing test deferred
+to the Seeker stage.
+
+**Tools resolution.** This Mac mini has no `adb`, `java`, or `gradle`
+on PATH. Found:
+- Android SDK at `~/Library/Android/sdk`
+- Android Studio's bundled JBR (JDK 21) at
+  `/Applications/Android Studio.app/Contents/jbr/Contents/Home`
+
+Set `ANDROID_HOME` + `JAVA_HOME` for the build invocation; both work
+for Expo SDK 54 / RN 0.81 (the JDK 17 minimum is met by 21).
+
+**Sample-wallet button** added to OnboardingScreen — outline pill
+under the primary "Connect Wallet" CTA. On press, skips MWA and runs
+the existing analyze-and-navigate path against
+`7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU` (Helius docs example
+wallet, public-domain mainnet history). Lets the emulator demo
+exercise the full UX without a wallet adapter dependency.
+
+**Build sequence:**
+1. `npx expo prebuild --platform android --clean` — generated `android/`
+2. `npx expo run:android` (no `--device` flag; Expo auto-picked the
+   only running emulator. Earlier attempt with `--device emulator-5554`
+   failed: Expo's CLI matches by AVD name, not adb serial.)
+3. Gradle compiled APK in **6m 24s** (cold cache); APK installed and
+   launched on AVD "WRAP-test" (emulator-5554).
+4. Two non-fatal Kotlin deprecation warnings about `ReactNativeHost` —
+   coming from the Expo template, not our code. Ignored.
+5. Metro bundled JS in **3.5 s**, no errors.
+6. App in foreground: `app.wrap.mobile/.MainActivity`.
+
+**Onboarding screenshot** saved at
+`screenshots/emulator-onboarding.png` (418 KB). What rendered:
+- WRAP wordmark in solana-red, large and centered
+- '26 subtitle
+- Three floating preview cards (DIAMOND 847, OG STATUS TOP 1%, 2026
+  RECAP 1,284) with correct gradients and rotations, overlapping
+  exactly as the design specifies
+- "Your wallet has stories. / We tell them." headline (second line in
+  solana-red)
+- "Connect your Solana wallet. Get your Wrapped card." sub
+- Primary "Connect Wallet" gradient pill
+- Sample-wallet outline pill (new) — visible at bottom but **clipped
+  near the screen edge** on this emulator's screen height. Tappable,
+  but should get a small bottom-padding bump in a follow-up. Minor
+  cosmetic, not blocking the demo.
+
+**Status:** app running on `emulator-5554`. Human can tap "Try with
+sample wallet" to walk the full flow (CardReveal → 3 cards → Share →
+Mint → MintConfirm → Gallery) without Phantom. AI provider chain
+(Gemini → Groq → mock) and live cNFT mint will exercise on first tap.
