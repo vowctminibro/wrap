@@ -18,6 +18,7 @@ import { connectWallet } from '../lib/wallet';
 import { analyzeWallet } from '../lib/wallet-analyzer';
 import { getAllAssets, getWalletTransactions } from '../services/helius';
 import SolanaBadge from '../components/SolanaBadge';
+import Wordmark from '../components/Wordmark';
 
 // Real Solana power-user wallet — used as the dev fallback when MWA isn't
 // available (iOS / web), so the dev loop sees real data on Mac mini.
@@ -139,7 +140,9 @@ export default function OnboardingScreen({ navigation }: Props) {
         ]}
       >
         <View style={styles.wordmarkWrap}>
-          <Text style={styles.wordmark}>WRAP</Text>
+          {/* size=96 keeps width (96 * 1000/280 = 343 dp) inside the
+              safe area's horizontal padding on every supported AVD. */}
+          <Wordmark size={96} variant="gradient" glow />
           <Text style={styles.year}>'26</Text>
         </View>
 
@@ -254,13 +257,6 @@ const styles = StyleSheet.create({
   wordmarkWrap: {
     alignItems: 'center',
     marginTop: spacing.md,
-  },
-  wordmark: {
-    fontSize: 88,
-    fontWeight: '900',
-    color: colors.solanaPurple,
-    letterSpacing: -4,
-    lineHeight: 88,
   },
   year: {
     fontSize: fontSizes.bodySm,
