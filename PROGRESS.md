@@ -592,3 +592,58 @@ exercise the full UX without a wallet adapter dependency.
 sample wallet" to walk the full flow (CardReveal → 3 cards → Share →
 Mint → MintConfirm → Gallery) without Phantom. AI provider chain
 (Gemini → Groq → mock) and live cNFT mint will exercise on first tap.
+
+---
+
+## Phase 6.brand Verification — Day 10 (2026-05-01)
+
+Solana brand alignment shipped across 4 commits (`3c00be2`, `f89b9fe`,
+`d702eb4`, `ac11ee6`). The legacy `#FE3B68` "solanaRed" hot pink that
+predated the project is fully removed; palette now follows
+https://solana.com/branding (purple `#9945FF`, green `#14F195`, with
+magenta `#DC1FFF` rounding out the official 3-color gradient).
+
+**Per-card gradient assignment (active card types only):**
+- diamond → green → purple
+- og → purple → magenta
+- recap → magenta → green
+- v2 placeholders scrubbed of `#FE3B68` references too
+
+**Tier 2 additions:**
+- `SolanaMark` — three skewed `LinearGradient` bars approximating the
+  Solana logomark silhouette (no `react-native-svg` dep added; would
+  have required another prebuild)
+- `SolanaBadge` — mark + "Built on Solana" text, accessible link, lives
+  in OnboardingScreen / MintConfirmScreen / CardGalleryScreen footers
+- `AboutScreen` — modal-presented credits screen (TECH STACK, SOURCE,
+  BUILT BY) with explicit non-affiliation disclaimer
+- `(i)` info button on CardReveal + Gallery top bars routes to About
+
+**Skipped:** Tier 2 step 11 (replace emoji icons in PreviewCards) is a
+no-op — `grep -rE "[💎👑📊🔥🎯⚡✨🚀]"` found zero emoji in
+`mobile/src/`. Preview cards already use plain text + `PixelIcon`
+custom 16×16 grids. Documented in the brand-4 commit message.
+
+**Visual verification — `screenshots/day10-rebrand.png`:**
+- Top-left ambient blob: Solana purple (was red)
+- Bottom-right ambient blob: Solana green (was violet)
+- WRAP wordmark: Solana purple (was red)
+- Floating preview cards now use the new per-card gradients —
+  Diamond/OG/Recap each visibly distinct
+- Headline accent "We tell them.": Solana purple
+- Connect Wallet CTA: purple → green gradient (was red→orange→violet)
+- Sample-wallet pill border: Solana green (was red)
+
+**Visual diff vs `day10-launch.png`:** completely different identity.
+Same layout, same composition — colors swapped throughout. The look
+reads as a Solana-native app rather than a generic gradient mock.
+
+**Known UI item (not blocking):** the Day 10.cosmetic
+`paddingBottom: spacing.lg` fix from `de47474` still doesn't visibly
+seat the sample-wallet pill above the screen edge on this AVD —
+escalation to `useSafeAreaInsets() + insets.bottom + 24` is the next
+move when polish time allows.
+
+`tsc --noEmit` clean across all 4 brand commits. `expo-doctor` was
+last verified 17/17 prior to the rebrand; no native modules added so
+no doctor regression possible.
