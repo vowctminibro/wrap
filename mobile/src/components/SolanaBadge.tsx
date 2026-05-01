@@ -1,10 +1,11 @@
-// "Built on Solana" attribution badge — the SolanaMark + label, in a row.
-// Drop into any footer to credit the chain.
+// "Built on Solana" attribution badge — text-only.
 //
-// Accessible: announces "Built on Solana blockchain" via accessibilityLabel.
+// Original implementation paired a SolanaMark approximation with the
+// label, but Solana brand guidelines explicitly forbid modified logos.
+// To stay safely on the right side of that policy we ship text-only:
+// no mark, no risk of looking like an unauthorized logo derivative.
 
-import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
-import SolanaMark from './SolanaMark';
+import { Text, StyleSheet, Pressable, Linking } from 'react-native';
 import { colors, spacing } from '../theme/tokens';
 
 export default function SolanaBadge({
@@ -14,8 +15,7 @@ export default function SolanaBadge({
   size?: 'sm' | 'md';
   onPress?: () => void;
 }) {
-  const markSize = size === 'md' ? 24 : 18;
-  const fontSize = size === 'md' ? 14 : 12;
+  const fontSize = size === 'md' ? 13 : 11;
 
   const handlePress =
     onPress ??
@@ -32,25 +32,21 @@ export default function SolanaBadge({
       accessibilityLabel="Built on Solana blockchain"
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <SolanaMark size={markSize} />
-      <Text style={[styles.label, { fontSize }]}>Built on Solana</Text>
+      <Text style={[styles.label, { fontSize }]}>BUILT ON SOLANA</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     alignSelf: 'center',
   },
-  pressed: { opacity: 0.7 },
+  pressed: { opacity: 0.6 },
   label: {
-    color: colors.textSecondary,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    color: colors.solanaGreen,
+    fontWeight: '700',
+    letterSpacing: 1.5,
   },
 });
