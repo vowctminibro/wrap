@@ -2,13 +2,21 @@
 //
 // Flow:
 //   1. Pick prompt template by card type.
-//   2. Call llm.callLLM(SYSTEM, buildUserPrompt(analysis)).
-//   3. On both providers failing, fall back to llm.mock pool.
-//   4. Wrap the prose line + structural fields (icon, label, stat) into
-//      a CardData ready for Card.tsx (Phase 4).
+//   2. Check LLM cache (AsyncStorage, keyed by wallet+cardType+day).
+//   3. On miss: call llm.callLLM(SYSTEM, buildUserPrompt(analysis)),
+//      walk the gemini-1 → gemini-2 → groq chain.
+//   4. On all providers failing: fall back to the llm.mock pool.
+//   5. Cache the result (best-effort) before returning.
+//   6. Wrap the prose line + structural fields (icon, label, stat) into
+//      a CardData ready for Card.tsx.
 
 import { callLLM, getLastProvider, type Provider } from '../services/llm';
 import { callLLMMock } from '../services/llm.mock';
+import {
+  getCachedInsight,
+  setCachedInsight,
+  type InsightSource,
+} from './llm-cache';
 import * as Diamond from '../prompts/diamond-hand';
 import * as OG from '../prompts/og-status';
 import * as Recap from '../prompts/year-recap';
@@ -77,11 +85,13 @@ const TEMPLATES: Record<CardType, Template | null> = {
 
 export const ACTIVE_INSIGHT_CARDS: CardType[] = ['diamond', 'og', 'recap'];
 
-export type InsightProvider = Provider | 'mock';
+export type InsightProvider = Provider | 'mock' | 'cache';
 
 export type InsightTrace = {
   cardType: CardType;
   provider: InsightProvider;
+  /** The prose source pulled from cache (set when provider === 'cache'). */
+  cachedFromSource?: InsightSource;
   raw: string; // pre-sanitization (mock: same as final)
   line: string; // post-sanitization (what ships to UI)
 };
@@ -97,21 +107,53 @@ export async function generateCardInsight(
   const sys = tpl.prompt.SYSTEM;
   const user = tpl.prompt.buildUserPrompt(analysis);
 
-  let raw = '';
-  let line = '';
-  let provider: InsightProvider = 'mock';
-  try {
-    line = await callLLM(sys, user);
-    raw = line;
-    provider = (getLastProvider() ?? 'mock') as InsightProvider;
-  } catch (e) {
-    console.warn(`[insight-engine] LLM fallback to mock for ${cardType}: ${(e as Error).message}`);
-    line = callLLMMock(sys, user);
-    raw = line;
-    provider = 'mock';
+  // Cache lookup first — saves a quota burn on every re-tap of the
+  // same wallet within a 24h window.
+  const cached = await getCachedInsight(analysis.address, cardType);
+  let line: string;
+  let raw: string;
+  let provider: InsightProvider;
+  let source: CardData['source'];
+  if (cached) {
+    line = cached.prose;
+    raw = cached.prose;
+    provider = 'cache';
+    source = 'cache';
+    if (trace) {
+      trace.push({
+        cardType,
+        provider,
+        cachedFromSource: cached.source,
+        raw,
+        line,
+      });
+    }
+  } else {
+    let liveSource: InsightSource;
+    try {
+      line = await callLLM(sys, user);
+      raw = line;
+      const last = getLastProvider();
+      liveSource = last ?? 'mock';
+      provider = liveSource as InsightProvider;
+    } catch (e) {
+      console.warn(
+        `[insight-engine] LLM fallback to mock for ${cardType}: ${(e as Error).message}`
+      );
+      line = callLLMMock(sys, user);
+      raw = line;
+      liveSource = 'mock';
+      provider = 'mock';
+    }
+    source = liveSource;
+    // Best-effort write — never blocks on storage.
+    setCachedInsight(analysis.address, cardType, {
+      prose: line,
+      generatedAt: Date.now(),
+      source: liveSource,
+    });
+    if (trace) trace.push({ cardType, provider, raw, line });
   }
-
-  if (trace) trace.push({ cardType, provider, raw, line });
 
   const { stat, statUnit, sub } = tpl.buildStat(analysis);
   const walletShort = shortenAddress(analysis.address);
@@ -127,6 +169,7 @@ export async function generateCardInsight(
     line,
     pubkey: walletShort,
     walletShort,
+    source,
   };
 }
 

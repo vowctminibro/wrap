@@ -95,6 +95,11 @@ export default function MintConfirmScreen({ navigation, route }: Props) {
             cNFT minted to <Text style={styles.subMono}>{cardData.pubkey}</Text>
           </Text>
           <Text style={styles.sigText}>tx: {shorten(signature)}</Text>
+          {cardData.source ? (
+            <Text style={styles.providerText}>
+              generated via {sourceLabel(cardData.source)}
+            </Text>
+          ) : null}
         </View>
 
         {/* CTAs */}
@@ -125,6 +130,20 @@ export default function MintConfirmScreen({ navigation, route }: Props) {
 function shorten(s: string): string {
   if (s.length <= 12) return s;
   return `${s.slice(0, 6)}…${s.slice(-6)}`;
+}
+
+function sourceLabel(source: NonNullable<Props['route']['params']['cardData']['source']>): string {
+  switch (source) {
+    case 'gemini-1':
+    case 'gemini-2':
+      return 'Gemini';
+    case 'groq':
+      return 'Groq';
+    case 'cache':
+      return 'cache';
+    case 'mock':
+      return 'fallback pool';
+  }
 }
 
 const styles = StyleSheet.create({
@@ -229,6 +248,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Courier',
     marginTop: 6,
+  },
+  providerText: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginTop: 4,
   },
   ctas: {
     flexDirection: 'row',

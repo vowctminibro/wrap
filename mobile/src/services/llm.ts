@@ -1,21 +1,18 @@
 // Provider-agnostic LLM client.
 //
-// Strategy: Gemini 2.5 Flash (primary, free tier) → Groq Llama 3.3 70B
-// (fallback, free tier). On any provider error — HTTP non-2xx, timeout,
-// or malformed response — log a warning and try the next provider. If
-// both fail, throw — caller (insight-engine) falls back to a hand-crafted
-// mock pool.
-//
-// Public surface kept intentionally small:
-//   • callLLM(systemPrompt, userPrompt) -> Promise<string>
-//   • getLastProvider() -> "gemini" | "groq" | null
+// Fallback chain: Gemini #1 → Gemini #2 → Groq → throw.
+// Each Gemini key has its own daily quota, so a second key from a
+// different Google account effectively doubles capacity for the demo
+// window. On HTTP 429 (or any other error) we walk to the next link in
+// the chain. If everything fails the caller (insight-engine) falls back
+// to a hand-crafted mock pool.
 //
 // Keys (read lazily so Node-side scripts loading .env.local *after*
 // import still see them):
-//   • EXPO_PUBLIC_GEMINI_KEY     — primary
-//   • EXPO_PUBLIC_GROQ_KEY       — fallback
-// In Expo these are inlined at build; in Node scripts the test runner
-// loads them from mobile/.env.local before the first call.
+//   • EXPO_PUBLIC_GEMINI_KEY      — primary Gemini quota
+//   • EXPO_PUBLIC_GEMINI_KEY_2    — secondary quota from a second account (optional)
+//   • EXPO_PUBLIC_GROQ_KEY        — Llama 3.3 70B fallback
+// Missing keys are skipped silently.
 //
 // Output is run through sanitizeOutput() before return: strips wrapping
 // quotes, drops common preambles, collapses whitespace, and hard-caps at
@@ -23,7 +20,7 @@
 
 const PROVIDER_TIMEOUT_MS = 10_000;
 
-export type Provider = 'gemini' | 'groq';
+export type Provider = 'gemini-1' | 'gemini-2' | 'groq';
 
 let lastProvider: Provider | null = null;
 
@@ -31,8 +28,11 @@ export function getLastProvider(): Provider | null {
   return lastProvider;
 }
 
-function getGeminiKey(): string | undefined {
+function getGeminiKey1(): string | undefined {
   return process.env.EXPO_PUBLIC_GEMINI_KEY;
+}
+function getGeminiKey2(): string | undefined {
+  return process.env.EXPO_PUBLIC_GEMINI_KEY_2;
 }
 function getGroqKey(): string | undefined {
   return process.env.EXPO_PUBLIC_GROQ_KEY;
@@ -45,17 +45,24 @@ export async function callLLM(systemPrompt: string, userPrompt: string): Promise
   lastProvider = null;
   const errors: string[] = [];
 
-  if (hasKey(getGeminiKey())) {
+  // Walk the Gemini quota pool (key #1, then key #2 if configured).
+  const geminiAttempts: Array<[Provider, string | undefined]> = [
+    ['gemini-1', getGeminiKey1()],
+    ['gemini-2', getGeminiKey2()],
+  ];
+  for (const [providerName, key] of geminiAttempts) {
+    if (!hasKey(key)) {
+      errors.push(`${providerName}: no key`);
+      continue;
+    }
     try {
-      const raw = await tryGemini(systemPrompt, userPrompt);
-      lastProvider = 'gemini';
+      const raw = await tryGemini(key as string, systemPrompt, userPrompt);
+      lastProvider = providerName;
       return sanitizeOutput(raw);
     } catch (e) {
-      errors.push(`gemini: ${errMsg(e)}`);
-      console.warn(`[llm] gemini failed, falling back to groq: ${errMsg(e)}`);
+      errors.push(`${providerName}: ${errMsg(e)}`);
+      console.warn(`[llm] ${providerName} failed, advancing chain: ${errMsg(e)}`);
     }
-  } else {
-    errors.push('gemini: no key');
   }
 
   if (hasKey(getGroqKey())) {
@@ -74,10 +81,14 @@ export async function callLLM(systemPrompt: string, userPrompt: string): Promise
   throw new Error(`All LLM providers failed — ${errors.join('; ')}`);
 }
 
-async function tryGemini(systemPrompt: string, userPrompt: string): Promise<string> {
+async function tryGemini(
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string
+): Promise<string> {
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent` +
-    `?key=${getGeminiKey()}`;
+    `?key=${apiKey}`;
   const body = {
     contents: [{ parts: [{ text: userPrompt }] }],
     systemInstruction: { parts: [{ text: systemPrompt }] },

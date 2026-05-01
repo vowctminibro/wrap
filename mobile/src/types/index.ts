@@ -25,6 +25,10 @@ export type CardData = {
   accent: string;
   pubkey: string;
   walletShort: string;
+  // Which LLM provider produced the line (or 'mock' / 'cache'). Surfaced
+  // in MintConfirm as a small attribution badge so judges can see the
+  // resilience chain working.
+  source?: 'gemini-1' | 'gemini-2' | 'groq' | 'mock' | 'cache';
 };
 
 export type TokenHolding = {
