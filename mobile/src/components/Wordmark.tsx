@@ -9,6 +9,7 @@
 // shows the wordmark with halo in hero placements.
 
 import { useId } from 'react';
+import { Dimensions } from 'react-native';
 import Svg, {
   Defs,
   G,
@@ -21,6 +22,12 @@ import Svg, {
 
 const VB_W = 1000;
 const VB_H = 280;
+
+// Reserve this much horizontal padding on each side so the wordmark
+// doesn't kiss the edge of the screen when the consumer asks for an
+// idealistic size. Matches the typical screen-level horizontal padding
+// of consumers (OnboardingScreen uses spacing.lg=32 per side).
+const SCREEN_MARGIN = 32;
 
 type Variant = 'gradient' | 'mono-purple' | 'mono-white';
 
@@ -44,11 +51,19 @@ export default function Wordmark({
   const gradId = `wordmarkGrad${rid}`;
   const haloId = `wordmarkHalo${rid}`;
 
-  const width = (size * VB_W) / VB_H;
+  // Responsive: cap the rendered width to the screen so the wordmark
+  // never crops at the right edge on narrower devices. `size` becomes
+  // an *ideal* height — actual height shrinks if needed to preserve the
+  // 1000×280 aspect ratio under a screen-bounded width.
+  const screenWidth = Dimensions.get('window').width;
+  const maxWidth = Math.max(0, screenWidth - SCREEN_MARGIN * 2);
+  const idealWidth = (size * VB_W) / VB_H;
+  const finalWidth = Math.min(idealWidth, maxWidth);
+  const finalHeight = (finalWidth * VB_H) / VB_W;
   const fill = variant === 'gradient' ? `url(#${gradId})` : SOLID_COLOR[variant];
 
   return (
-    <Svg width={width} height={size} viewBox={`0 0 ${VB_W} ${VB_H}`} fill="none">
+    <Svg width={finalWidth} height={finalHeight} viewBox={`0 0 ${VB_W} ${VB_H}`} fill="none">
       <Defs>
         <LinearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
           <Stop offset="0%" stopColor="#9945FF" />

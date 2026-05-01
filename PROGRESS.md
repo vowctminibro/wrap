@@ -644,6 +644,19 @@ seat the sample-wallet pill above the screen edge on this AVD —
 escalation to `useSafeAreaInsets() + insets.bottom + 24` is the next
 move when polish time allows.
 
+**Demo video build note:** the dev-client overlay ("Open Debugger /
+Reload" toast, dev menu surface) is only visible in debug builds. For
+the Day 14-15 demo recording, build the release variant so the menu
+overlay is gone:
+
+```
+cd ~/Projects/wrap/mobile
+npx expo run:android --variant release
+```
+
+Keeping the dev build for current iteration speed (HMR is faster than
+re-installing a release APK every change).
+
 `tsc --noEmit` clean across all 4 brand commits. `expo-doctor` was
 last verified 17/17 prior to the rebrand; no native modules added so
 no doctor regression possible.

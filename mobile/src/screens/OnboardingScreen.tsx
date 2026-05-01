@@ -19,6 +19,7 @@ import { analyzeWallet } from '../lib/wallet-analyzer';
 import { getAllAssets, getWalletTransactions } from '../services/helius';
 import SolanaBadge from '../components/SolanaBadge';
 import Wordmark from '../components/Wordmark';
+import AmbientBlob from '../components/AmbientBlob';
 
 // Real Solana power-user wallet — used as the dev fallback when MWA isn't
 // available (iOS / web), so the dev loop sees real data on Mac mini.
@@ -129,9 +130,19 @@ export default function OnboardingScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* Ambient gradient blobs (top-left red, bottom-right violet) */}
-      <View style={[styles.blob, styles.blobPurple]} />
-      <View style={[styles.blob, styles.blobGreen]} />
+      {/* Soft-radial ambient blobs — Solana brand purple top-left,
+          green bottom-right. Each fades to fully transparent at its
+          own edge, so there is no hard ring on the dark backdrop. */}
+      <AmbientBlob
+        color={colors.solanaPurple}
+        size={700}
+        style={styles.blobPurple}
+      />
+      <AmbientBlob
+        color={colors.solanaGreen}
+        size={700}
+        style={styles.blobGreen}
+      />
 
       <SafeAreaView
         style={[
@@ -140,9 +151,10 @@ export default function OnboardingScreen({ navigation }: Props) {
         ]}
       >
         <View style={styles.wordmarkWrap}>
-          {/* size=96 keeps width (96 * 1000/280 = 343 dp) inside the
-              safe area's horizontal padding on every supported AVD. */}
-          <Wordmark size={96} variant="gradient" glow />
+          {/* Wordmark self-caps to screen width minus margin, so passing
+              the bigger ideal size is safe — narrower screens shrink
+              proportionally instead of cropping. */}
+          <Wordmark size={120} variant="gradient" glow />
           <Text style={styles.year}>'26</Text>
         </View>
 
@@ -227,23 +239,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     overflow: 'hidden',
   },
-  blob: {
-    position: 'absolute',
-    width: 500,
-    height: 500,
-    borderRadius: 250,
-    opacity: 0.35,
-  },
-  // Two-tone ambient glow — Solana brand purple top-left, green bottom-right.
+  // Two-tone ambient glow — Solana brand purple top-left, green
+  // bottom-right. The blob sizes (700 dp) extend off-screen so the
+  // visible portion is the soft inner falloff of the radial gradient.
   blobPurple: {
-    top: -180,
-    left: -180,
-    backgroundColor: colors.solanaPurple,
+    position: 'absolute',
+    top: -260,
+    left: -260,
   },
   blobGreen: {
-    bottom: -200,
-    right: -180,
-    backgroundColor: colors.solanaGreen,
+    position: 'absolute',
+    bottom: -260,
+    right: -260,
   },
   safe: {
     flex: 1,
