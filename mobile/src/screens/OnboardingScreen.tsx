@@ -235,6 +235,11 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     paddingHorizontal: spacing.lg,
+    // Comfortable bottom edge so the secondary "Try with sample wallet"
+    // pill never clips against the system gesture/nav bar. SafeAreaView
+    // already insets the OS bar; this adds ~32 dp of breathing room
+    // inside that.
+    paddingBottom: spacing.lg,
     justifyContent: 'space-between',
   },
   wordmarkWrap: {
