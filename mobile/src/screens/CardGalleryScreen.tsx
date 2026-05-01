@@ -129,7 +129,13 @@ export default function CardGalleryScreen({ navigation }: Props) {
             <Text style={styles.backBtnText}>‹</Text>
           </Pressable>
           <Text style={styles.topLabel}>GALLERY</Text>
-          <View style={{ width: 40 }} />
+          <Pressable
+            onPress={() => navigation.navigate('About')}
+            style={styles.infoBtn}
+            accessibilityLabel="About WRAP"
+          >
+            <Text style={styles.infoBtnText}>i</Text>
+          </Pressable>
         </View>
 
         <ScrollView
@@ -331,5 +337,20 @@ const styles = StyleSheet.create({
   badgeWrap: {
     alignItems: 'center',
     marginTop: spacing.lg,
+  },
+  infoBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: colors.hairline,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoBtnText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'serif',
   },
 });

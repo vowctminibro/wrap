@@ -64,5 +64,6 @@ export type RootStackParamList = {
   CardReveal: { publicKey: string; analysis: WalletAnalysis };
   MintConfirm: { signature: string; cardData: CardData };
   Gallery: { publicKey: string; analysis: WalletAnalysis };
+  About: undefined;
   Debug: { analysis: WalletAnalysis };
 };

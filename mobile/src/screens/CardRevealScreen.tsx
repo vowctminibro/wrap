@@ -144,12 +144,22 @@ export default function CardRevealScreen({ navigation, route }: Props) {
             <Text style={styles.backBtnText}>‹</Text>
           </Pressable>
           <Text style={styles.topLabel}>YOUR WRAPPED</Text>
-          <Pressable
-            onPress={() => navigation.navigate('Gallery', { publicKey, analysis })}
-            style={styles.galleryBtn}
-          >
-            <Text style={styles.galleryBtnText}>≡</Text>
-          </Pressable>
+          <View style={styles.topRightCluster}>
+            <Pressable
+              onPress={() => navigation.navigate('About')}
+              style={styles.infoBtn}
+              accessibilityLabel="About WRAP"
+            >
+              <Text style={styles.infoBtnText}>i</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => navigation.navigate('Gallery', { publicKey, analysis })}
+              style={styles.galleryBtn}
+              accessibilityLabel="Open gallery"
+            >
+              <Text style={styles.galleryBtnText}>≡</Text>
+            </Pressable>
+          </View>
         </View>
 
         {/* Card carousel */}
@@ -379,6 +389,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.3,
   },
+  topRightCluster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   galleryBtn: {
     width: 40,
     height: 40,
@@ -392,6 +407,21 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     marginTop: -2,
+  },
+  infoBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: colors.hairline,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoBtnText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'serif',
   },
   affiliateRow: {
     paddingHorizontal: spacing.lg,
