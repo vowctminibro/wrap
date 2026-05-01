@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     lineHeight: 46,
   },
   h1Accent: {
-    color: colors.solanaRed,
+    color: colors.solanaPurple,
   },
   headerSub: {
     color: colors.textSecondary,

@@ -23,7 +23,7 @@ const navTheme = {
     card: colors.bg,
     text: colors.white,
     border: colors.hairlineSoft,
-    primary: colors.solanaRed,
+    primary: colors.solanaPurple,
   },
 };
 

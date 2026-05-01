@@ -127,8 +127,8 @@ export default function OnboardingScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       {/* Ambient gradient blobs (top-left red, bottom-right violet) */}
-      <View style={[styles.blob, styles.blobRed]} />
-      <View style={[styles.blob, styles.blobViolet]} />
+      <View style={[styles.blob, styles.blobPurple]} />
+      <View style={[styles.blob, styles.blobGreen]} />
 
       <SafeAreaView style={styles.safe}>
         <View style={styles.wordmarkWrap}>
@@ -222,15 +222,16 @@ const styles = StyleSheet.create({
     borderRadius: 250,
     opacity: 0.35,
   },
-  blobRed: {
+  // Two-tone ambient glow — Solana brand purple top-left, green bottom-right.
+  blobPurple: {
     top: -180,
     left: -180,
-    backgroundColor: colors.solanaRed,
+    backgroundColor: colors.solanaPurple,
   },
-  blobViolet: {
+  blobGreen: {
     bottom: -200,
     right: -180,
-    backgroundColor: colors.violet,
+    backgroundColor: colors.solanaGreen,
   },
   safe: {
     flex: 1,
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
   wordmark: {
     fontSize: 88,
     fontWeight: '900',
-    color: colors.solanaRed,
+    color: colors.solanaPurple,
     letterSpacing: -4,
     lineHeight: 88,
   },
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
     lineHeight: 42,
   },
   headlineGrad: {
-    color: colors.solanaRed,
+    color: colors.solanaPurple,
   },
   sub: {
     fontSize: 16,
@@ -333,14 +334,16 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: radius.pill,
     borderWidth: 1.5,
-    borderColor: colors.solanaRed,
+    // Solana green border — sits well against the purple-dominant
+    // hero composition above.
+    borderColor: colors.solanaGreen,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
   },
   ctaSampleText: {
-    color: colors.solanaRed,
+    color: colors.solanaGreen,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: -0.2,

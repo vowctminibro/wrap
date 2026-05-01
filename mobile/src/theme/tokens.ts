@@ -24,11 +24,6 @@ export const colors = {
   solanaGreen: '#14F195',
   solanaMagenta: '#DC1FFF',
 
-  // Backwards-compat alias retained briefly so the file compiles while
-  // call-site usages of `colors.solanaRed` are swept in the next commit.
-  // Will be removed in Day 10.brand-2.
-  solanaRed: '#9945FF',
-
   // Legacy named-color tokens kept where they don't conflict with brand
   // (yellow/cyan still used by v2 gallery placeholder gradients).
   violet: '#9945FF',

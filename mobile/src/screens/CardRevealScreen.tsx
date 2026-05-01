@@ -125,7 +125,7 @@ export default function CardRevealScreen({ navigation, route }: Props) {
       <View style={styles.root}>
         <SafeAreaView style={styles.centered}>
           <View style={styles.loadingPulse} />
-          <ActivityIndicator color={colors.solanaRed} size="large" />
+          <ActivityIndicator color={colors.solanaPurple} size="large" />
           <Text style={styles.loadingTitle}>Analyzing your wallet…</Text>
           <Text style={styles.loadingSub}>
             Reading {analysis.totalTransactions.toLocaleString()} transactions.
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: colors.solanaRed,
+    backgroundColor: colors.solanaPurple,
     opacity: 0.15,
   },
   loadingTitle: {

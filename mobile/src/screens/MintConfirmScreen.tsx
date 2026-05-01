@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   headlineGrad: {
-    color: colors.solanaRed,
+    color: colors.solanaPurple,
   },
   sub: {
     color: colors.textSecondary,

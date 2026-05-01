@@ -5,7 +5,9 @@
 import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-const COLORS = ['#FE3B68', '#FF6B3B', '#9945FF', '#FFB800', '#00E0FF', '#FFFFFF'];
+// Confetti palette — Solana brand colors lead, with neutral accents
+// so the spread reads festive without leaving brand.
+const COLORS = ['#9945FF', '#14F195', '#DC1FFF', '#FFB800', '#00E0FF', '#FFFFFF'];
 
 type Piece = {
   leftPct: number;
