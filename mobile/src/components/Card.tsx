@@ -20,7 +20,10 @@ import type { CardData } from '../types';
 
 type Variant = 'full' | 'mini';
 
-const BG: Record<string, readonly [string, string, string]> = {
+// Per-card type gradients now vary in length (2-stop for active cards
+// post-rebrand; 3-stop preserved for v2 placeholders). Loosened to
+// `readonly string[]` so each card can carry its own shape.
+const BG: Record<string, readonly string[]> = {
   diamond: gradients.card.diamond,
   og: gradients.card.og,
   recap: gradients.card.recap,

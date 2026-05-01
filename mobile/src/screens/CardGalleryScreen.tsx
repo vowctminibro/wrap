@@ -33,7 +33,7 @@ type Thumb = {
   statUnit: string;
   accent: string;
   active: boolean;
-  gradient: readonly [string, string, string];
+  gradient: readonly string[];
 };
 
 function buildThumbs(): Thumb[] {

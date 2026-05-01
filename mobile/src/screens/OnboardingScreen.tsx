@@ -37,7 +37,7 @@ const FloatingPreview = ({
   top: number;
   left: number;
   scale: number;
-  gradient: readonly [string, string, string];
+  gradient: readonly string[];
   label: string;
   stat: string;
 }) => (

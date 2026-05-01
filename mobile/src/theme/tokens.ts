@@ -1,6 +1,14 @@
-// Design tokens extracted from "WRAP - Solana Colosseum"/screens.jsx
+// Design tokens — Solana official palette.
 // Single source of truth for colors, fonts, spacing, gradients.
 // Anything visual must consume from here — no hardcoded values in components.
+//
+// Brand alignment (Day 10): the original spec leaned on a #FE3B68 hot
+// pink that was labeled "solanaRed" but is not part of the Solana brand.
+// The brand colors per https://solana.com/branding are:
+//   • Solana Purple   #9945FF
+//   • Solana Green    #14F195
+//   • Solana Magenta  #DC1FFF (used in the official 3-color gradient)
+// All references to the legacy red have been removed.
 
 export const colors = {
   bg: '#0A0A0F',
@@ -10,35 +18,57 @@ export const colors = {
   textSecondary: '#9B9BA3',
   textMuted: '#6B6B78',
   textDim: '#5A5A68',
-  solanaRed: '#FE3B68',
-  orange: '#FF6B3B',
+
+  // Solana brand palette
+  solanaPurple: '#9945FF',
+  solanaGreen: '#14F195',
+  solanaMagenta: '#DC1FFF',
+
+  // Backwards-compat alias retained briefly so the file compiles while
+  // call-site usages of `colors.solanaRed` are swept in the next commit.
+  // Will be removed in Day 10.brand-2.
+  solanaRed: '#9945FF',
+
+  // Legacy named-color tokens kept where they don't conflict with brand
+  // (yellow/cyan still used by v2 gallery placeholder gradients).
   violet: '#9945FF',
   cyan: '#00E0FF',
   yellow: '#FFB800',
   yellowAccent: '#FFD93B',
   green: '#00E676',
+
   greenBgTint: 'rgba(0, 230, 118, 0.15)',
   greenBorder: 'rgba(0, 230, 118, 0.5)',
-  borderGlow: 'rgba(254, 59, 104, 0.3)',
+  // Brand glow — Solana green at low alpha, contrasts well over purple
+  // gradients without competing with the brand purple.
+  borderGlow: 'rgba(20, 241, 149, 0.3)',
   hairline: 'rgba(255,255,255,0.18)',
   hairlineSoft: 'rgba(255,255,255,0.1)',
 } as const;
 
 export const gradients = {
-  // Primary brand gradient (red → orange → violet) — used on CTAs and headlines
-  primary: ['#FE3B68', '#FF6B3B', '#9945FF'] as const,
+  // Primary brand gradient — Solana official 2-stop purple → green.
+  primary: ['#9945FF', '#14F195'] as const,
   primaryAngle: 95,
-  // Two-stop variant for indicators and smaller buttons
-  primaryDuo: ['#FE3B68', '#9945FF'] as const,
-  // Per-card backgrounds (mirror cards-data.jsx exactly)
+  // Same 2-stop variant for indicators and smaller buttons.
+  primaryDuo: ['#9945FF', '#14F195'] as const,
+
+  // Per-card backgrounds. Diamond / OG / Recap are the active card types
+  // shipped by the insight engine — each gets a distinct 2-stop vibe so
+  // they read as a set without all looking identical:
+  //   diamond → green→purple    (wealth + speed)
+  //   og      → purple→magenta  (status + mystery)
+  //   recap   → magenta→green   (vibrancy + growth)
+  // The other 4 entries are v2 placeholders shown grayscale in Gallery;
+  // their gradients are kept loose but free of any non-brand colors.
   card: {
-    swaps: ['#FE3B68', '#FF6B3B', '#9945FF'] as const,
-    diamond: ['#00E0FF', '#6B5BFF', '#9945FF'] as const,
-    og: ['#FFB800', '#FE3B68', '#9945FF'] as const,
-    recap: ['#9945FF', '#FE3B68', '#FFB800'] as const,
+    diamond: ['#14F195', '#9945FF'] as const,
+    og: ['#9945FF', '#DC1FFF'] as const,
+    recap: ['#DC1FFF', '#14F195'] as const,
+    swaps: ['#9945FF', '#14F195'] as const,
     genre: ['#00FFB2', '#00B2FF', '#9945FF'] as const,
-    personality: ['#FE3B68', '#B23BFE', '#3B6BFE'] as const,
-    achievement: ['#FFB800', '#FE3B68', '#6B3BFE'] as const,
+    personality: ['#9945FF', '#3B6BFE'] as const,
+    achievement: ['#FFB800', '#DC1FFF'] as const,
   },
 } as const;
 
@@ -102,14 +132,14 @@ export const shadows = {
     elevation: 24,
   },
   cardGlow: {
-    shadowColor: colors.solanaRed,
+    shadowColor: colors.solanaPurple,
     shadowOffset: { width: 0, height: 40 },
     shadowOpacity: 0.6,
     shadowRadius: 120,
     elevation: 32,
   },
   buttonPrimary: {
-    shadowColor: colors.solanaRed,
+    shadowColor: colors.solanaPurple,
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.4,
     shadowRadius: 40,
