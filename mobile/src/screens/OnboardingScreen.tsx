@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../types';
@@ -66,6 +66,7 @@ const FloatingPreview = ({
 
 export default function OnboardingScreen({ navigation }: Props) {
   const [connecting, setConnecting] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const analyzeAndNavigate = async (publicKey: string) => {
     let transactions, assets;
@@ -131,7 +132,12 @@ export default function OnboardingScreen({ navigation }: Props) {
       <View style={[styles.blob, styles.blobPurple]} />
       <View style={[styles.blob, styles.blobGreen]} />
 
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView
+        style={[
+          styles.safe,
+          { paddingBottom: insets.bottom + spacing.lg },
+        ]}
+      >
         <View style={styles.wordmarkWrap}>
           <Text style={styles.wordmark}>WRAP</Text>
           <Text style={styles.year}>'26</Text>
@@ -239,11 +245,10 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    // Comfortable bottom edge so the secondary "Try with sample wallet"
-    // pill never clips against the system gesture/nav bar. SafeAreaView
-    // already insets the OS bar; this adds ~32 dp of breathing room
-    // inside that.
-    paddingBottom: spacing.lg,
+    // Bottom padding is set inline as `insets.bottom + spacing.lg` so
+    // the sample-wallet pill clears the system gesture/nav bar on
+    // every screen size (the static spacing.lg fallback wasn't enough
+    // on tall AVDs with no nav bar).
     justifyContent: 'space-between',
   },
   wordmarkWrap: {
