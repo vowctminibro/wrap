@@ -24,6 +24,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import Card from '../components/Card';
 import Confetti from '../components/Confetti';
+import SolanaBadge from '../components/SolanaBadge';
 import { buildShareText, shareCardImage } from '../lib/share-card';
 import type { RootStackParamList } from '../types';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
@@ -111,6 +112,10 @@ export default function MintConfirmScreen({ navigation, route }: Props) {
               <Text style={styles.ctaText}>Share again</Text>
             </LinearGradient>
           </Pressable>
+        </View>
+
+        <View style={styles.badgeWrap}>
+          <SolanaBadge size="sm" />
         </View>
       </SafeAreaView>
     </View>
@@ -257,5 +262,10 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: -0.3,
+  },
+  badgeWrap: {
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
   },
 });

@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import PixelIcon, { type IconName } from '../components/PixelIcon';
+import SolanaBadge from '../components/SolanaBadge';
 import { colors, gradients, spacing } from '../theme/tokens';
 import type { CardType, RootStackParamList } from '../types';
 
@@ -202,6 +203,10 @@ export default function CardGalleryScreen({ navigation }: Props) {
               </Pressable>
             ))}
           </View>
+
+          <View style={styles.badgeWrap}>
+            <SolanaBadge size="sm" />
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -322,5 +327,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 1.2,
+  },
+  badgeWrap: {
+    alignItems: 'center',
+    marginTop: spacing.lg,
   },
 });

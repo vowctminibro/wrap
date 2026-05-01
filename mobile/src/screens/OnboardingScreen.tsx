@@ -17,6 +17,7 @@ import { colors, gradients, fontSizes, spacing, radius } from '../theme/tokens';
 import { connectWallet } from '../lib/wallet';
 import { analyzeWallet } from '../lib/wallet-analyzer';
 import { getAllAssets, getWalletTransactions } from '../services/helius';
+import SolanaBadge from '../components/SolanaBadge';
 
 // Real Solana power-user wallet — used as the dev fallback when MWA isn't
 // available (iOS / web), so the dev loop sees real data on Mac mini.
@@ -203,7 +204,9 @@ export default function OnboardingScreen({ navigation }: Props) {
           <Text style={styles.ctaSampleText}>Try with sample wallet</Text>
         </Pressable>
 
-        <Text style={styles.poweredBy}>Powered by Solana</Text>
+        <View style={styles.badgeWrap}>
+          <SolanaBadge size="sm" />
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -348,12 +351,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: -0.2,
   },
-  poweredBy: {
-    textAlign: 'center',
-    color: colors.textDim,
-    fontSize: 12,
-    fontWeight: '500',
-    letterSpacing: 1,
+  badgeWrap: {
+    alignItems: 'center',
     marginBottom: spacing.sm,
   },
 });
