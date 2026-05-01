@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>WRAP — Brand Assets</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; background: #0A0A0F; color: #fff; font-family: 'Inter Tight', sans-serif; }
+  * { box-sizing: border-box; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 60px 40px 100px; }
+  h1 { font-size: 64px; font-weight: 900; letter-spacing: -0.04em; margin: 0 0 8px; }
+  .sub { color: #9b9bab; font-size: 18px; margin-bottom: 8px; }
+  .toks { color: #6b6b78; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 60px; font-family: 'JetBrains Mono', monospace; }
+  .grid { display: grid; gap: 32px; margin-bottom: 32px; }
+  .card { background: #14141c; border: 1px solid #25252e; border-radius: 24px; padding: 32px; }
+  .card.light { background: #f5f5f7; color: #0A0A0F; border-color: #d0d0d8; }
+  .card.checker { background-image: linear-gradient(45deg, #1a1a22 25%, transparent 25%), linear-gradient(-45deg, #1a1a22 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a22 75%), linear-gradient(-45deg, transparent 75%, #1a1a22 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, 10px 0; background-color: #0e0e14; }
+  .label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #6b6b78; margin-bottom: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .card.light .label { color: #6b6b78; }
+  .meta { font-size: 12px; color: #5a5a68; margin-top: 24px; font-family: 'JetBrains Mono', monospace; display: flex; justify-content: space-between; }
+  .holder { display: flex; align-items: center; justify-content: center; min-height: 200px; }
+  .row-2 { grid-template-columns: 1fr 1fr; }
+  .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .row-4 { grid-template-columns: repeat(4, 1fr); }
+  .fav-row { display: flex; gap: 32px; align-items: center; justify-content: center; }
+  .fav-row > div { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .fav-row .px { color: #5a5a68; font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .section-h { font-size: 14px; letter-spacing: 0.24em; text-transform: uppercase; color: #6b6b78; margin: 60px 0 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; border-top: 1px solid #25252e; padding-top: 32px; }
+  .swatches { display: flex; gap: 16px; margin-top: 16px; }
+  .sw { padding: 12px 16px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; }
+  img { display: block; max-width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>WRAP — Brand Assets</h1>
+  <div class="sub">7 production SVGs · vector · transparent backgrounds</div>
+  <div class="toks">Purple #9945FF → Green #14F195 · BG #0A0A0F</div>
+
+  <div class="swatches">
+    <div class="sw" style="background:#9945FF;color:#fff">#9945FF</div>
+    <div class="sw" style="background:#14F195;color:#0A0A0F">#14F195</div>
+    <div class="sw" style="background:linear-gradient(90deg,#9945FF,#14F195);color:#fff">brandGradient</div>
+    <div class="sw" style="background:#0A0A0F;color:#fff;border:1px solid #25252e">#0A0A0F</div>
+  </div>
+
+  <div class="section-h">01 · Primary Wordmark</div>
+  <div class="card">
+    <div class="label">wordmark.svg · gradient + glow</div>
+    <div class="holder"><img src="brand/wordmark.svg" alt="wordmark" style="max-height:200px" /></div>
+    <div class="meta"><span>viewBox 0 0 1000 280</span><span>fill=brandGradient · filter=glow</span></div>
+  </div>
+
+  <div class="section-h">02 · Mono Wordmark Variants</div>
+  <div class="grid row-2">
+    <div class="card">
+      <div class="label">wordmark-mono-purple.svg</div>
+      <div class="holder"><img src="brand/wordmark-mono-purple.svg" alt="purple" style="max-height:160px" /></div>
+      <div class="meta"><span>fill #9945FF</span><span>no glow</span></div>
+    </div>
+    <div class="card light">
+      <div class="label">wordmark-mono-white.svg</div>
+      <div class="holder" style="background:#0A0A0F;border-radius:12px;padding:20px"><img src="brand/wordmark-mono-white.svg" alt="white" style="max-height:160px" /></div>
+      <div class="meta"><span>fill #FFFFFF</span><span>shown on dark</span></div>
+    </div>
+  </div>
+
+  <div class="section-h">03 · Standalone W Mark</div>
+  <div class="grid row-2">
+    <div class="card">
+      <div class="label">mark-w.svg · gradient + glow</div>
+      <div class="holder"><img src="brand/mark-w.svg" alt="w" style="max-height:200px" /></div>
+      <div class="meta"><span>viewBox 0 0 200 200</span><span>app icon · profile</span></div>
+    </div>
+    <div class="card">
+      <div class="label">mark-w-mono.svg</div>
+      <div class="holder"><img src="brand/mark-w-mono.svg" alt="w mono" style="max-height:200px" /></div>
+      <div class="meta"><span>fill #9945FF</span><span>no glow</span></div>
+    </div>
+  </div>
+
+  <div class="section-h">04 · Favicon (simplified)</div>
+  <div class="card checker">
+    <div class="label" style="color:#9b9bab">favicon.svg · solid purple · no dot</div>
+    <div class="fav-row">
+      <div><img src="brand/favicon.svg" alt="32" style="width:32px;height:32px;image-rendering:pixelated" /><div class="px">32 × 32</div></div>
+      <div><img src="brand/favicon.svg" alt="64" style="width:64px;height:64px" /><div class="px">64 × 64</div></div>
+      <div><img src="brand/favicon.svg" alt="128" style="width:128px;height:128px" /><div class="px">128 × 128</div></div>
+      <div><img src="brand/favicon.svg" alt="256" style="width:256px;height:256px" /><div class="px">256 × 256</div></div>
+    </div>
+  </div>
+
+  <div class="section-h">05 · Horizontal Lockup</div>
+  <div class="card">
+    <div class="label">lockup-horizontal.svg · gradient</div>
+    <div class="holder"><img src="brand/lockup-horizontal.svg" alt="lockup" style="max-height:180px" /></div>
+    <div class="meta"><span>viewBox 0 0 1400 280</span><span>mark + 60px gap + wordmark</span></div>
+  </div>
+  <div class="card light" style="margin-top:32px">
+    <div class="label">lockup-horizontal-white.svg · on dark</div>
+    <div class="holder" style="background:#0A0A0F;border-radius:12px;padding:24px"><img src="brand/lockup-horizontal-white.svg" alt="lockup white" style="max-height:160px" /></div>
+    <div class="meta"><span>fill #FFFFFF</span><span>monochrome variant</span></div>
+  </div>
+
+  <div class="section-h">06 · Sample applications</div>
+  <div class="grid row-3">
+    <div class="card" style="background:#14141c;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;border-radius:48px">
+      <img src="brand/mark-w.svg" alt="app icon" style="width:160px" />
+      <div style="margin-top:16px;font-size:11px;color:#6b6b78;letter-spacing:0.2em;font-family:'JetBrains Mono',monospace">APP ICON</div>
+    </div>
+    <div class="card" style="background:#0e0e14;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;border-radius:50%;width:280px;height:280px;margin:0 auto">
+      <img src="brand/mark-w.svg" alt="profile" style="width:160px" />
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px">
+      <img src="brand/lockup-horizontal.svg" alt="header" style="width:100%" />
+      <div style="margin-top:16px;font-size:11px;color:#6b6b78;letter-spacing:0.2em;font-family:'JetBrains Mono',monospace">HEADER LOCKUP</div>
+    </div>
+  </div>
+
+  <div class="section-h">07 · Manifest</div>
+  <div class="card">
+    <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:13px">
+      <thead>
+        <tr style="color:#6b6b78;text-align:left">
+          <th style="padding:12px 8px;border-bottom:1px solid #25252e">File</th>
+          <th style="padding:12px 8px;border-bottom:1px solid #25252e">viewBox</th>
+          <th style="padding:12px 8px;border-bottom:1px solid #25252e">Gradient</th>
+          <th style="padding:12px 8px;border-bottom:1px solid #25252e">Glow</th>
+        </tr>
+      </thead>
+      <tbody style="color:#cfcfd8">
+        <tr><td style="padding:10px 8px">brand/wordmark.svg</td><td>0 0 1000 280</td><td>yes</td><td>yes</td></tr>
+        <tr><td style="padding:10px 8px">brand/wordmark-mono-purple.svg</td><td>0 0 1000 280</td><td>—</td><td>—</td></tr>
+        <tr><td style="padding:10px 8px">brand/wordmark-mono-white.svg</td><td>0 0 1000 280</td><td>—</td><td>—</td></tr>
+        <tr><td style="padding:10px 8px">brand/mark-w.svg</td><td>0 0 200 200</td><td>yes</td><td>yes</td></tr>
+        <tr><td style="padding:10px 8px">brand/mark-w-mono.svg</td><td>0 0 200 200</td><td>—</td><td>—</td></tr>
+        <tr><td style="padding:10px 8px">brand/favicon.svg</td><td>0 0 64 64</td><td>—</td><td>—</td></tr>
+        <tr><td style="padding:10px 8px">brand/lockup-horizontal.svg</td><td>0 0 1400 280</td><td>yes</td><td>yes</td></tr>
+        <tr><td style="padding:10px 8px">brand/lockup-horizontal-white.svg</td><td>0 0 1400 280</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>
