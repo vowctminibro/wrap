@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   wordmarkWrap: {
     alignItems: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.md,
   },
   wordmark: {
     fontSize: 88,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   },
   floatingStack: {
     height: 220,
-    marginVertical: spacing.lg,
+    marginVertical: spacing.md,
   },
   floatingCard: {
     position: 'absolute',
