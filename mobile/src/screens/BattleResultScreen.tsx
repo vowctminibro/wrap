@@ -39,6 +39,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { runBattle } from '../services/battle-engine';
+import {
+  appendBattle,
+  type BattleHistoryRecord,
+} from '../services/battleHistory';
 import { shortenAddress } from '../lib/wallet';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type {
@@ -77,6 +81,9 @@ export default function BattleResultScreen({ navigation, route }: Props) {
   const [revealedRounds, setRevealedRounds] = useState(0);
   const [skipped, setSkipped] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  // Guard so appendBattle fires exactly once per loaded result, even
+  // when the final view re-renders or the user toggles details.
+  const savedRef = useRef(false);
 
   useEffect(() => {
     let alive = true;
@@ -84,6 +91,7 @@ export default function BattleResultScreen({ navigation, route }: Props) {
     setRevealedRounds(0);
     setSkipped(false);
     setShowDetails(false);
+    savedRef.current = false;
     (async () => {
       try {
         const result = await runBattle(walletA, walletB);
@@ -146,6 +154,19 @@ export default function BattleResultScreen({ navigation, route }: Props) {
   // Success — render reveal flow
   const { result } = state;
   const isFinal = skipped || revealedRounds >= result.rounds.length;
+
+  // Persist to local history once the reveal lands on the final view.
+  // Ties are not persisted: the leaderboard's ranking model assumes a
+  // clean winner per battle, and a tie produces no champion mint either.
+  useEffect(() => {
+    if (!isFinal) return;
+    if (savedRef.current) return;
+    savedRef.current = true;
+    if (result.overallWinner === 'tie') return;
+    const record = toHistoryRecord(result, walletA, walletB);
+    // Fire-and-forget — the service swallows write failures.
+    void appendBattle(record);
+  }, [isFinal, result, walletA, walletB]);
 
   const onSkip = () => setSkipped(true);
   const onBattleAgain = () => navigation.goBack();
@@ -601,6 +622,35 @@ function RecapRow({ round }: { round: BattleRound }) {
       </View>
     </View>
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Battle-history record builder
+// ─────────────────────────────────────────────────────────────────────
+
+function toHistoryRecord(
+  result: BattleResult,
+  walletA: string,
+  walletB: string
+): BattleHistoryRecord {
+  // Caller filters ties before invoking; A or B is guaranteed.
+  const winnerPubkey = result.overallWinner === 'A' ? walletA : walletB;
+  const loserPubkey = result.overallWinner === 'A' ? walletB : walletA;
+  const ts = result.createdAt;
+  return {
+    id: `${winnerPubkey}-${ts}`,
+    timestamp: ts,
+    winnerPubkey,
+    loserPubkey,
+    finalScore: result.finalScore,
+    rounds: result.rounds.map((r) => ({
+      cardType: r.category,
+      aScore: r.scoreA,
+      bScore: r.scoreB,
+      winner:
+        r.winner === 'A' ? 'a' : r.winner === 'B' ? 'b' : 'tie',
+    })),
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────

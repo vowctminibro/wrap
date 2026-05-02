@@ -72,4 +72,5 @@ export type RootStackParamList = {
   Debug: { analysis: WalletAnalysis };
   BattleInput: { walletA: string };
   BattleResult: { walletA: string; walletB: string };
+  Leaderboard: undefined;
 };

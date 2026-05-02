@@ -225,6 +225,16 @@ export default function OnboardingScreen({ navigation }: Props) {
           <Text style={styles.ctaSampleText}>Try with sample wallet</Text>
         </Pressable>
 
+        <Pressable
+          onPress={() => navigation.navigate('Leaderboard')}
+          style={({ pressed }) => [
+            styles.ctaLeaderboard,
+            pressed && styles.ctaPressed,
+          ]}
+        >
+          <Text style={styles.ctaLeaderboardText}>🏆  Leaderboard</Text>
+        </Pressable>
+
         <View style={styles.badgeWrap}>
           <SolanaBadge size="sm" />
         </View>
@@ -273,8 +283,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   floatingStack: {
-    height: 220,
-    marginVertical: spacing.md,
+    height: 180,
+    marginVertical: spacing.sm,
   },
   floatingCard: {
     position: 'absolute',
@@ -302,7 +312,7 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   headlineWrap: {
-    marginVertical: spacing.lg,
+    marginVertical: spacing.md,
   },
   headline: {
     fontSize: 40,
@@ -342,7 +352,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   ctaSample: {
-    height: 48,
+    height: 44,
     borderRadius: radius.pill,
     borderWidth: 1.5,
     // Solana green border — sits well against the purple-dominant
@@ -350,8 +360,7 @@ const styles = StyleSheet.create({
     borderColor: colors.solanaGreen,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
   },
   ctaSampleText: {
     color: colors.solanaGreen,
@@ -359,8 +368,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: -0.2,
   },
+  ctaLeaderboard: {
+    height: 44,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: colors.solanaMagenta,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.xs,
+  },
+  ctaLeaderboardText: {
+    color: colors.solanaMagenta,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
   badgeWrap: {
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
 });
