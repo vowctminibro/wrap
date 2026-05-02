@@ -35,7 +35,7 @@ const SOLSCAN_DEVNET = (sig: string) =>
   `https://solscan.io/tx/${sig}?cluster=devnet`;
 
 export default function MintConfirmScreen({ navigation, route }: Props) {
-  const { signature, cardData } = route.params;
+  const { signature, cardData, publicKey } = route.params;
   const cardWrapRef = useRef<View>(null);
 
   const onSolscan = async () => {
@@ -118,6 +118,18 @@ export default function MintConfirmScreen({ navigation, route }: Props) {
             </LinearGradient>
           </Pressable>
         </View>
+
+        {/* Battle entry — secondary CTA, magenta outline keeps it from
+            competing with the primary purple→green Share gradient. */}
+        <Pressable
+          onPress={() => navigation.navigate('BattleInput', { walletA: publicKey })}
+          style={({ pressed }) => [
+            styles.battleBtn,
+            pressed && styles.battlePressed,
+          ]}
+        >
+          <Text style={styles.battleBtnText}>⚔️  Battle another wallet</Text>
+        </Pressable>
 
         <View style={styles.badgeWrap}>
           <SolanaBadge size="sm" />
@@ -289,6 +301,24 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: -0.3,
+  },
+  battleBtn: {
+    height: 48,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: colors.solanaMagenta,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  battlePressed: { opacity: 0.7 },
+  battleBtnText: {
+    color: colors.solanaMagenta,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   badgeWrap: {
     alignItems: 'center',

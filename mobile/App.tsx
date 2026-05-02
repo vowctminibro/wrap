@@ -11,6 +11,8 @@ import MintConfirmScreen from './src/screens/MintConfirmScreen';
 import CardGalleryScreen from './src/screens/CardGalleryScreen';
 import AboutScreen from './src/screens/AboutScreen';
 import DebugAnalysisScreen from './src/screens/DebugAnalysisScreen';
+import BattleInputScreen from './src/screens/BattleInputScreen';
+import BattleResultScreen from './src/screens/BattleResultScreen';
 import type { RootStackParamList } from './src/types';
 import { colors } from './src/theme/tokens';
 
@@ -50,6 +52,8 @@ export default function App() {
             options={{ presentation: 'modal' }}
           />
           <Stack.Screen name="Debug" component={DebugAnalysisScreen} />
+          <Stack.Screen name="BattleInput" component={BattleInputScreen} />
+          <Stack.Screen name="BattleResult" component={BattleResultScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

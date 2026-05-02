@@ -66,8 +66,10 @@ export type WalletAnalysis = {
 export type RootStackParamList = {
   Onboarding: undefined;
   CardReveal: { publicKey: string; analysis: WalletAnalysis };
-  MintConfirm: { signature: string; cardData: CardData };
+  MintConfirm: { signature: string; cardData: CardData; publicKey: string };
   Gallery: { publicKey: string; analysis: WalletAnalysis };
   About: undefined;
   Debug: { analysis: WalletAnalysis };
+  BattleInput: { walletA: string };
+  BattleResult: { walletA: string; walletB: string };
 };

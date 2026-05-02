@@ -81,6 +81,7 @@ export default function CardRevealScreen({ navigation, route }: Props) {
       navigation.navigate('MintConfirm', {
         signature: result.signature,
         cardData: card,
+        publicKey,
       });
     } catch (e) {
       Alert.alert('Mint', (e as Error).message);
