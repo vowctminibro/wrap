@@ -36,10 +36,38 @@ function buildSeeds(): BattleHistoryRecord[] {
       loserPubkey: RAJ,
       finalScore: { a: 3, b: 1 },
       rounds: [
-        { cardType: 'diamond_hand', aScore: 8.5, bScore: 6.0, winner: 'a' },
-        { cardType: 'og_status', aScore: 10.0, bScore: 9.5, winner: 'a' },
-        { cardType: 'volume', aScore: 8.2, bScore: 5.4, winner: 'a' },
-        { cardType: 'diversity', aScore: 6.1, bScore: 7.8, winner: 'b' },
+        {
+          cardType: 'diamond_hand',
+          aScore: 8.5,
+          bScore: 6.0,
+          winner: 'a',
+          commentary:
+            'Toly was here when this chain had three users. Raj came when it had three thousand.',
+        },
+        {
+          cardType: 'og_status',
+          aScore: 10.0,
+          bScore: 9.5,
+          winner: 'a',
+          commentary:
+            "Two co-founders, marginal call. Toly's address is older by months.",
+        },
+        {
+          cardType: 'volume',
+          aScore: 8.2,
+          bScore: 5.4,
+          winner: 'a',
+          commentary:
+            'Toly never stopped clicking. Raj watches. Toly executes.',
+        },
+        {
+          cardType: 'diversity',
+          aScore: 6.1,
+          bScore: 7.8,
+          winner: 'b',
+          commentary:
+            'Raj branches out. Toly stays in his lane and the lane is wide.',
+        },
       ],
     },
     // Pair 2 — founder vs ecosystem. Toly dominant, one diversity tie.
@@ -52,10 +80,38 @@ function buildSeeds(): BattleHistoryRecord[] {
       loserPubkey: MERT,
       finalScore: { a: 3, b: 0 },
       rounds: [
-        { cardType: 'diamond_hand', aScore: 8.5, bScore: 4.2, winner: 'a' },
-        { cardType: 'og_status', aScore: 10.0, bScore: 7.5, winner: 'a' },
-        { cardType: 'volume', aScore: 9.0, bScore: 8.7, winner: 'a' },
-        { cardType: 'diversity', aScore: 6.5, bScore: 6.5, winner: 'tie' },
+        {
+          cardType: 'diamond_hand',
+          aScore: 8.5,
+          bScore: 4.2,
+          winner: 'a',
+          commentary:
+            'Toly bought the dip when there was no one else around to sell to.',
+        },
+        {
+          cardType: 'og_status',
+          aScore: 10.0,
+          bScore: 7.5,
+          winner: 'a',
+          commentary:
+            'Mert has been here forever. Toly was the one who let him in.',
+        },
+        {
+          cardType: 'volume',
+          aScore: 9.0,
+          bScore: 8.7,
+          winner: 'a',
+          commentary:
+            '9.0 to 8.7. The founder out-traffics the infra guy by a hair.',
+        },
+        {
+          cardType: 'diversity',
+          aScore: 6.5,
+          bScore: 6.5,
+          winner: 'tie',
+          commentary:
+            '6.5 to 6.5. Both touch everything, neither blinks.',
+        },
       ],
     },
     // Pair 3 — builder vs trader. Card shapes diverge sharply.
@@ -66,10 +122,38 @@ function buildSeeds(): BattleHistoryRecord[] {
       loserPubkey: ANSEM,
       finalScore: { a: 3, b: 1 },
       rounds: [
-        { cardType: 'diamond_hand', aScore: 7.8, bScore: 3.2, winner: 'a' },
-        { cardType: 'og_status', aScore: 8.5, bScore: 6.0, winner: 'a' },
-        { cardType: 'volume', aScore: 7.5, bScore: 9.6, winner: 'b' },
-        { cardType: 'diversity', aScore: 8.9, bScore: 5.5, winner: 'a' },
+        {
+          cardType: 'diamond_hand',
+          aScore: 7.8,
+          bScore: 3.2,
+          winner: 'a',
+          commentary:
+            "Ansem trades like he's got a flight to catch. Mert plays the long game.",
+        },
+        {
+          cardType: 'og_status',
+          aScore: 8.5,
+          bScore: 6.0,
+          winner: 'a',
+          commentary:
+            'Mert was building when Ansem was still picking a username.',
+        },
+        {
+          cardType: 'volume',
+          aScore: 7.5,
+          bScore: 9.6,
+          winner: 'b',
+          commentary:
+            "Ansem doesn't sleep. The only thing higher than his volume is his timeline.",
+        },
+        {
+          cardType: 'diversity',
+          aScore: 8.9,
+          bScore: 5.5,
+          winner: 'a',
+          commentary:
+            'Mert touches every program on the chain. Ansem touches Jupiter.',
+        },
       ],
     },
   ];
