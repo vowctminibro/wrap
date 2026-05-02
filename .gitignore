@@ -1,1 +1,9 @@
 *.flag
+.env
+.env.*
+.env.tokens
+
+# Landing page build artifacts
+landing/.next/
+landing/node_modules/
+landing/.vercel/
