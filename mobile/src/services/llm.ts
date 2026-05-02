@@ -41,7 +41,11 @@ function hasKey(k: string | undefined): boolean {
   return !!k && k.length >= 8;
 }
 
-export async function callLLM(systemPrompt: string, userPrompt: string): Promise<string> {
+export async function callLLM(
+  systemPrompt: string,
+  userPrompt: string,
+  maxWords: number = 15
+): Promise<string> {
   lastProvider = null;
   const errors: string[] = [];
 
@@ -58,7 +62,7 @@ export async function callLLM(systemPrompt: string, userPrompt: string): Promise
     try {
       const raw = await tryGemini(key as string, systemPrompt, userPrompt);
       lastProvider = providerName;
-      return sanitizeOutput(raw);
+      return sanitizeOutput(raw, maxWords);
     } catch (e) {
       errors.push(`${providerName}: ${errMsg(e)}`);
       console.warn(`[llm] ${providerName} failed, advancing chain: ${errMsg(e)}`);
@@ -69,7 +73,7 @@ export async function callLLM(systemPrompt: string, userPrompt: string): Promise
     try {
       const raw = await tryGroq(systemPrompt, userPrompt);
       lastProvider = 'groq';
-      return sanitizeOutput(raw);
+      return sanitizeOutput(raw, maxWords);
     } catch (e) {
       errors.push(`groq: ${errMsg(e)}`);
       console.warn(`[llm] groq failed: ${errMsg(e)}`);
@@ -176,9 +180,10 @@ type GroqResponse = {
 // sanitizeOutput
 // LLMs occasionally wrap output in quotes or open with a preamble like
 // "Here's a punchy line:". Strip those, collapse whitespace, and cap
-// length at 15 words as a hard safety net.
+// length at maxWords (default 15) as a hard safety net. Insight cards
+// stay at 15; longer-form copy (Battle commentary at 25) opts in.
 // ─────────────────────────────────────────────────────────────────────
-export function sanitizeOutput(raw: string): string {
+export function sanitizeOutput(raw: string, maxWords: number = 15): string {
   if (!raw) return raw;
   let s = raw.trim();
 
@@ -199,10 +204,10 @@ export function sanitizeOutput(raw: string): string {
   // Collapse runs of whitespace.
   s = s.replace(/\s+/g, ' ').trim();
 
-  // Hard cap at 15 words. End on a clean period if we had to truncate.
+  // Hard cap at maxWords. End on a clean period if we had to truncate.
   const words = s.split(/\s+/);
-  if (words.length > 15) {
-    s = words.slice(0, 15).join(' ').replace(/[,;:]+$/, '');
+  if (words.length > maxWords) {
+    s = words.slice(0, maxWords).join(' ').replace(/[,;:]+$/, '');
     if (!/[.!?]$/.test(s)) s += '.';
   }
   return s;

@@ -176,7 +176,7 @@ async function generateCommentary(
   const statsB = statsForCategory(category, analysisB);
   const prompt = commentaryPrompt(category, statsA, statsB, winner);
 
-  const commentary = await callLLM(BATTLE_SYSTEM, prompt);
+  const commentary = await callLLM(BATTLE_SYSTEM, prompt, 25);
   const provider: Provider = getLastProvider() ?? 'groq';
 
   // Best-effort cache write.
