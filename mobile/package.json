@@ -21,6 +21,7 @@
     "@solana/web3.js": "^1.98.4",
     "buffer": "^6.0.3",
     "expo": "~54.0.33",
+    "expo-clipboard": "~8.0.8",
     "expo-file-system": "~19.0.22",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.12",

@@ -25,6 +25,7 @@
 
 import type { View } from 'react-native';
 import { captureCardPng } from '../lib/share-card';
+import { uploadImageToPinata } from './pinata';
 import type { CardData } from '../types';
 
 export type MintResult = {
@@ -51,54 +52,11 @@ function getHeliusKey(): string | undefined {
   return process.env.EXPO_PUBLIC_HELIUS_KEY;
 }
 
-function getPinataJwt(): string | undefined {
-  return process.env.EXPO_PUBLIC_PINATA_JWT;
-}
-
-function getPinataGateway(): string | undefined {
-  return process.env.EXPO_PUBLIC_PINATA_GATEWAY;
-}
-
 function decodeBase64ToBytes(b64: string): Uint8Array {
   // RN polyfills the global Buffer via src/lib/polyfills.ts; in Node
   // tests Buffer is native. Either way Buffer.from(b64, 'base64') is
   // available where this function runs.
   return new Uint8Array(Buffer.from(b64, 'base64'));
-}
-
-/**
- * Pin a captured PNG to IPFS via Pinata. No-op + returns null when
- * EXPO_PUBLIC_PINATA_JWT is missing (we point cNFT metadata at the
- * placeholder URI in that case).
- */
-async function pinImageToPinata(localUri: string): Promise<string | null> {
-  const jwt = getPinataJwt();
-  const gateway = getPinataGateway();
-  if (!jwt) return null;
-
-  // RN's fetch supports FormData with file URIs (file:///…). We post the
-  // raw PNG; Pinata returns { IpfsHash: "Qm…" }. Gateway URL is
-  // optional for display purposes.
-  const form = new FormData();
-  form.append('file', {
-    uri: localUri,
-    name: 'wrap-card.png',
-    type: 'image/png',
-    // RN-specific FormData accepts this triple.
-  } as unknown as Blob);
-  const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-    method: 'POST',
-    headers: { authorization: `Bearer ${jwt}` },
-    body: form,
-  });
-  if (!res.ok) {
-    throw new Error(`Pinata pin HTTP ${res.status}`);
-  }
-  const json = (await res.json()) as { IpfsHash?: string };
-  if (!json.IpfsHash) throw new Error('Pinata: no IpfsHash in response');
-  return gateway
-    ? `${gateway.replace(/\/$/, '')}/ipfs/${json.IpfsHash}`
-    : `ipfs://${json.IpfsHash}`;
 }
 
 export async function mintCardAsCNFT(args: MintArgs): Promise<MintResult> {
@@ -126,7 +84,7 @@ export async function mintCardAsCNFT(args: MintArgs): Promise<MintResult> {
   let metadataImageUri = 'placeholder://wrap-card';
   if (localImageUri) {
     try {
-      const pinned = await pinImageToPinata(localImageUri);
+      const pinned = await uploadImageToPinata(localImageUri, 'wrap-card');
       if (pinned) metadataImageUri = pinned;
     } catch (e) {
       console.warn(`[cnft] pinata pin failed: ${(e as Error).message}`);
