@@ -73,4 +73,5 @@ export type RootStackParamList = {
   BattleInput: { walletA: string };
   BattleResult: { walletA: string; walletB: string };
   Leaderboard: undefined;
+  WalletDetail: { pubkey: string };
 };

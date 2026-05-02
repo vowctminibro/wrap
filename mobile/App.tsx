@@ -14,6 +14,7 @@ import DebugAnalysisScreen from './src/screens/DebugAnalysisScreen';
 import BattleInputScreen from './src/screens/BattleInputScreen';
 import BattleResultScreen from './src/screens/BattleResultScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
+import WalletDetailScreen from './src/screens/WalletDetailScreen';
 import type { RootStackParamList } from './src/types';
 import { colors } from './src/theme/tokens';
 
@@ -56,6 +57,7 @@ export default function App() {
           <Stack.Screen name="BattleInput" component={BattleInputScreen} />
           <Stack.Screen name="BattleResult" component={BattleResultScreen} />
           <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+          <Stack.Screen name="WalletDetail" component={WalletDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

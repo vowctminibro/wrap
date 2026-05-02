@@ -27,6 +27,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getHistory, type BattleHistoryRecord } from '../services/battleHistory';
 import { seedHistoryIfNeeded } from '../data/seededBattles';
 import { shortenAddress } from '../lib/wallet';
+import { formatRelative } from '../lib/relative-time';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { RootStackParamList } from '../types';
 
@@ -112,7 +113,14 @@ export default function LeaderboardScreen({ navigation }: Props) {
             <SectionHeader label="TOP WINNERS" />
             <View style={styles.sectionBlock}>
               {standings.map((s, i) => (
-                <StandingRow key={s.pubkey} rank={i + 1} standing={s} />
+                <StandingRow
+                  key={s.pubkey}
+                  rank={i + 1}
+                  standing={s}
+                  onPress={() =>
+                    navigation.navigate('WalletDetail', { pubkey: s.pubkey })
+                  }
+                />
               ))}
             </View>
 
@@ -137,7 +145,15 @@ function SectionHeader({ label }: { label: string }) {
   );
 }
 
-function StandingRow({ rank, standing }: { rank: number; standing: Standing }) {
+function StandingRow({
+  rank,
+  standing,
+  onPress,
+}: {
+  rank: number;
+  standing: Standing;
+  onPress: () => void;
+}) {
   const rankColor =
     rank === 1
       ? colors.solanaGreen
@@ -147,14 +163,17 @@ function StandingRow({ rank, standing }: { rank: number; standing: Standing }) {
           ? colors.solanaMagenta
           : colors.textMuted;
   return (
-    <View style={styles.row}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
       <Text style={[styles.rank, { color: rankColor }]}>{rank}</Text>
       <Text style={styles.rowMono}>{shortenAddress(standing.pubkey, 4)}</Text>
       <View style={{ flex: 1 }} />
       <Text style={styles.rowStat}>
         {standing.wins}W / {standing.total}B
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -233,17 +252,6 @@ function computeStandings(history: BattleHistoryRecord[]): Standing[] {
     .sort((a, b) => b.wins - a.wins || b.total - a.total);
 }
 
-function formatRelative(ts: number): string {
-  const diff = Date.now() - ts;
-  if (diff < 60_000) return 'just now';
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -313,6 +321,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: spacing.sm,
   },
+  rowPressed: { opacity: 0.7 },
   rank: {
     fontSize: 18,
     fontWeight: '900',

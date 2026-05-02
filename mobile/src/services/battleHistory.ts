@@ -66,3 +66,31 @@ export async function clearHistory(): Promise<void> {
     console.warn('[battle-history] clear failed', e);
   }
 }
+
+export type WalletStats = {
+  wins: number;
+  losses: number;
+  total: number;
+  winRate: number; // 0-100, raw — caller renders the decimal precision.
+  battles: BattleHistoryRecord[]; // newest first.
+};
+
+// Pure derivation — no I/O, no side effects. Stat math stays out of the
+// component so the screen only handles render concerns.
+export function getWalletStats(
+  history: BattleHistoryRecord[],
+  pubkey: string
+): WalletStats {
+  const battles = history
+    .filter((r) => r.winnerPubkey === pubkey || r.loserPubkey === pubkey)
+    .sort((a, b) => b.timestamp - a.timestamp);
+  let wins = 0;
+  let losses = 0;
+  for (const r of battles) {
+    if (r.winnerPubkey === pubkey) wins += 1;
+    else losses += 1;
+  }
+  const total = wins + losses;
+  const winRate = total > 0 ? (wins / total) * 100 : 0;
+  return { wins, losses, total, winRate, battles };
+}
