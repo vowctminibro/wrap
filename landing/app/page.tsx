@@ -132,13 +132,22 @@ export default function Home() {
             In open beta. Available on Android via APK download. Seeker support
             shipping soon.
           </p>
-          <a
-            href="#"
-            title="Coming soon — May 11"
-            className="inline-flex h-14 items-center justify-center rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] px-10 text-lg font-semibold text-black hover:opacity-90 transition"
-          >
-            Download APK
-          </a>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <span
+              aria-disabled="true"
+              className="inline-flex h-14 items-center justify-center rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] px-10 text-lg font-semibold text-black opacity-50 cursor-default select-none"
+            >
+              Available May 11, 2026
+            </span>
+            <a
+              href="https://github.com/vowctminibro/wrap"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-14 items-center justify-center rounded-full border border-white/15 px-8 text-base font-semibold hover:bg-white/5 transition"
+            >
+              View on GitHub
+            </a>
+          </div>
           <p className="text-sm text-zinc-500 mt-6">
             iOS support after Frontier.{" "}
             <a
@@ -181,7 +190,7 @@ export default function Home() {
               GitHub
             </a>
             <a
-              href="https://twitter.com/"
+              href="https://twitter.com/vowctminibro"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white transition"
