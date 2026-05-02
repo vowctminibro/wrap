@@ -9,7 +9,7 @@
 // flag survives so re-mount doesn't replay seeds, which is the intended
 // dev shortcut for verifying the empty UI.
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -18,16 +18,24 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
+import * as Clipboard from 'expo-clipboard';
 
 import { getHistory, type BattleHistoryRecord } from '../services/battleHistory';
 import { seedHistoryIfNeeded } from '../data/seededBattles';
 import { shortenAddress } from '../lib/wallet';
 import { formatRelative } from '../lib/relative-time';
+import { uploadImageToPinata } from '../services/pinata';
+import ShareLeaderboardCard from '../components/ShareLeaderboardCard';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { RootStackParamList } from '../types';
 
@@ -41,9 +49,19 @@ type Standing = {
   total: number;
 };
 
+function showToast(msg: string) {
+  if (Platform.OS === 'android') {
+    ToastAndroid.show(msg, ToastAndroid.SHORT);
+  } else {
+    Alert.alert(msg);
+  }
+}
+
 export default function LeaderboardScreen({ navigation }: Props) {
   const [history, setHistory] = useState<BattleHistoryRecord[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const shareCardRef = useRef<View>(null);
 
   const load = useCallback(async () => {
     await seedHistoryIfNeeded();
@@ -68,6 +86,78 @@ export default function LeaderboardScreen({ navigation }: Props) {
     }
   }, [load]);
 
+  const onShare = useCallback(async () => {
+    if (sharing) return;
+    if (!shareCardRef.current) return;
+    setSharing(true);
+
+    // Phase 2C share flow: capture → upload → open share sheet.
+    // Each step has its own try/catch so a capture failure logs
+    // distinctly from an upload failure, and the user-facing toast
+    // surfaces only when we genuinely can't recover.
+    let localUri = '';
+    try {
+      localUri = await captureRef(shareCardRef.current, {
+        format: 'png',
+        quality: 1,
+        result: 'tmpfile',
+      });
+    } catch (e) {
+      console.warn(`[share] capture failed: ${(e as Error).message}`);
+      showToast('Could not generate share link — try again');
+      setSharing(false);
+      return;
+    }
+
+    let publicUrl: string | null = null;
+    try {
+      publicUrl = await uploadImageToPinata(
+        localUri,
+        `wrap-leaderboard-${Date.now()}`
+      );
+    } catch (e) {
+      console.warn(`[share] upload failed: ${(e as Error).message}`);
+      showToast('Could not generate share link — try again');
+      setSharing(false);
+      return;
+    }
+    if (!publicUrl) {
+      // No JWT configured → no point asking the user to retry.
+      console.warn('[share] pinata not configured (no EXPO_PUBLIC_PINATA_JWT)');
+      showToast('Sharing is not configured for this build');
+      setSharing(false);
+      return;
+    }
+
+    // Sharing.shareAsync expects a local file URI on Android, so
+    // attempting to share a remote https URL there typically throws —
+    // that's the path that lands us in the Clipboard fallback. iOS
+    // accepts remote URLs in some versions; either way the catch
+    // recovers cleanly.
+    try {
+      const can = await Sharing.isAvailableAsync();
+      if (can) {
+        await Sharing.shareAsync(publicUrl, {
+          dialogTitle: 'Share WRAP Leaderboard',
+        });
+      } else {
+        await Clipboard.setStringAsync(publicUrl);
+        showToast('Link copied');
+      }
+    } catch (e) {
+      console.warn(`[share] share sheet failed: ${(e as Error).message}`);
+      try {
+        await Clipboard.setStringAsync(publicUrl);
+        showToast('Link copied');
+      } catch (e2) {
+        console.warn(`[share] clipboard failed: ${(e2 as Error).message}`);
+        showToast('Could not generate share link — try again');
+      }
+    } finally {
+      setSharing(false);
+    }
+  }, [sharing]);
+
   if (history === null) {
     return (
       <View style={styles.root}>
@@ -84,13 +174,39 @@ export default function LeaderboardScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
+      {/* Off-screen render target for view-shot. Lives in the tree so it's
+          measured and laid out, but pushed left:-10000 so it never paints
+          over real UI. display:none would skip layout and break capture. */}
+      <View style={styles.offscreen} pointerEvents="none">
+        <ShareLeaderboardCard
+          ref={shareCardRef}
+          standings={history.length > 0 ? computeStandings(history).slice(0, 3) : []}
+          recent={history.slice(0, 3)}
+        />
+      </View>
+
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Text style={styles.backBtnText}>‹</Text>
           </Pressable>
           <Text style={styles.headerLabel}>BATTLE LEADERBOARD</Text>
-          <View style={{ width: 40 }} />
+          <Pressable
+            onPress={onShare}
+            disabled={sharing || isEmpty}
+            style={({ pressed }) => [
+              styles.shareBtn,
+              (sharing || isEmpty) && styles.shareBtnDisabled,
+              pressed && styles.shareBtnPressed,
+            ]}
+            accessibilityLabel="Share leaderboard"
+          >
+            {sharing ? (
+              <ActivityIndicator color={colors.solanaMagenta} size="small" />
+            ) : (
+              <Text style={styles.shareBtnText}>↗</Text>
+            )}
+          </Pressable>
         </View>
 
         {isEmpty ? (
@@ -274,6 +390,29 @@ function computeStandings(history: BattleHistoryRecord[]): Standing[] {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  offscreen: {
+    position: 'absolute',
+    left: -10000,
+    top: -10000,
+    width: 1200,
+    height: 675,
+  },
+  shareBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.bgElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareBtnPressed: { opacity: 0.7 },
+  shareBtnDisabled: { opacity: 0.4 },
+  shareBtnText: {
+    color: colors.solanaMagenta,
+    fontSize: 22,
+    fontWeight: '700',
+    marginTop: -2,
+  },
 
   // Header
   header: {
