@@ -660,3 +660,14 @@ re-installing a release APK every change).
 `tsc --noEmit` clean across all 4 brand commits. `expo-doctor` was
 last verified 17/17 prior to the rebrand; no native modules added so
 no doctor regression possible.
+
+---
+
+## Day 14 — Leaderboard Phase 1 ✅ (commit `3a9e4aa`)
+
+Local AsyncStorage battle history (`wrap:battles:history`, cap 50 FIFO) +
+LeaderboardScreen with Top-5 winners + last-10 recent + empty state, with
+3 fake battles auto-seeded on first launch so judges never hit empty.
+BattleResult hooks appendBattle once per battle (ref-guarded, ties skipped);
+Onboarding gets a magenta-bordered 🏆 Leaderboard CTA. Verified on emulator:
+seeds render, cold-kill persistence holds, no duplicate seeding, back-nav clean.
