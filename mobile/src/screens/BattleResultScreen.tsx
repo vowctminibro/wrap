@@ -106,6 +106,22 @@ export default function BattleResultScreen({ navigation, route }: Props) {
     };
   }, [walletA, walletB, reloadKey]);
 
+  // Persist to local history once the reveal lands on the final view.
+  // Ties are not persisted: the leaderboard's ranking model assumes a
+  // clean winner per battle, and a tie produces no champion mint either.
+  // Must live above the early returns below so hook order stays stable.
+  useEffect(() => {
+    if (state.kind !== 'success') return;
+    const isFinalNow =
+      skipped || revealedRounds >= state.result.rounds.length;
+    if (!isFinalNow) return;
+    if (savedRef.current) return;
+    savedRef.current = true;
+    if (state.result.overallWinner === 'tie') return;
+    const record = toHistoryRecord(state.result, walletA, walletB);
+    void appendBattle(record);
+  }, [state, skipped, revealedRounds, walletA, walletB]);
+
   // Loading
   if (state.kind === 'loading') {
     return (
@@ -154,19 +170,6 @@ export default function BattleResultScreen({ navigation, route }: Props) {
   // Success — render reveal flow
   const { result } = state;
   const isFinal = skipped || revealedRounds >= result.rounds.length;
-
-  // Persist to local history once the reveal lands on the final view.
-  // Ties are not persisted: the leaderboard's ranking model assumes a
-  // clean winner per battle, and a tie produces no champion mint either.
-  useEffect(() => {
-    if (!isFinal) return;
-    if (savedRef.current) return;
-    savedRef.current = true;
-    if (result.overallWinner === 'tie') return;
-    const record = toHistoryRecord(result, walletA, walletB);
-    // Fire-and-forget — the service swallows write failures.
-    void appendBattle(record);
-  }, [isFinal, result, walletA, walletB]);
 
   const onSkip = () => setSkipped(true);
   const onBattleAgain = () => navigation.goBack();
