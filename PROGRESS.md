@@ -677,3 +677,6 @@ Verified 6 famous Solana wallets via SNS resolver + RPC (toly.sol 261 SOL very a
 
 ## Day 14 — Leaderboard hot-fix + real seeds (commits `a4a119f`, `6da000e`)
 `a4a119f` moves the persistence `useEffect` above BattleResultScreen's loading/error early returns — fixes "Rendered more hooks than during the previous render" that crashed live battles in `3a9e4aa`. `6da000e` swaps placeholder seeds for verified mainnet pubkeys (Toly, Raj, Mert, Ansem) per `research/demo-battle-pairs.md`. Verified on emulator: pm clear → seeds render with real prefixes (86xC/E645/2CiB/AVAZ); live battle through MintConfirm appends "just now" on top with no hook crash.
+
+## Day 14 — Leaderboard Phase 2A: Wallet Detail Screen (commit `5bdb096`)
+Top Winners rows on LeaderboardScreen now navigate to a per-wallet read-only profile (identity + gradient stats card with W/L/win-rate + per-battle history rows from this wallet's perspective). Pure `getWalletStats` helper added to battleHistory.ts; `formatRelative` extracted to `lib/relative-time.ts` and shared. Recent Battles rows stay inert pending Phase 2B. Verified all four seed pubkeys (Toly 2W/0L/100%, Mert 1W/1L/50%, Raj 0W/1L/0%, Ansem 0W/1L/0%).
