@@ -2,6 +2,8 @@
 // Card types match the cards-data.jsx schema; analysis types feed the
 // Helius pipeline -> insight engine flow.
 
+import type { BattleHistoryRecord } from '../services/battleHistory';
+
 export type CardType =
   | 'swaps'
   | 'diamond'
@@ -71,7 +73,13 @@ export type RootStackParamList = {
   About: undefined;
   Debug: { analysis: WalletAnalysis };
   BattleInput: { walletA: string };
-  BattleResult: { walletA: string; walletB: string };
+  BattleResult: {
+    walletA: string;
+    walletB: string;
+    // Phase 2B: when present, replays this stored battle instead of
+    // running the engine. Persistence side-effect is skipped.
+    replay?: BattleHistoryRecord;
+  };
   Leaderboard: undefined;
   WalletDetail: { pubkey: string };
 };

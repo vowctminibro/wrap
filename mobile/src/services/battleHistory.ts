@@ -16,6 +16,9 @@ export type BattleHistoryRound = {
   aScore: number;
   bScore: number;
   winner: 'a' | 'b' | 'tie';
+  // Optional — added in Phase 2B for replay. Records persisted before this
+  // commit may not carry it; render path falls back to empty string.
+  commentary?: string;
 };
 
 export type BattleHistoryRecord = {

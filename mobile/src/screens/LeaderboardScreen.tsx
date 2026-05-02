@@ -127,7 +127,17 @@ export default function LeaderboardScreen({ navigation }: Props) {
             <SectionHeader label="RECENT BATTLES" />
             <View style={styles.sectionBlock}>
               {recent.map((r) => (
-                <RecentRow key={r.id} record={r} />
+                <RecentRow
+                  key={r.id}
+                  record={r}
+                  onPress={() =>
+                    navigation.navigate('BattleResult', {
+                      walletA: r.winnerPubkey,
+                      walletB: r.loserPubkey,
+                      replay: r,
+                    })
+                  }
+                />
               ))}
             </View>
           </ScrollView>
@@ -177,14 +187,23 @@ function StandingRow({
   );
 }
 
-function RecentRow({ record }: { record: BattleHistoryRecord }) {
+function RecentRow({
+  record,
+  onPress,
+}: {
+  record: BattleHistoryRecord;
+  onPress: () => void;
+}) {
   const winner = shortenAddress(record.winnerPubkey, 4);
   const loser = shortenAddress(record.loserPubkey, 4);
   const hi = Math.max(record.finalScore.a, record.finalScore.b);
   const lo = Math.min(record.finalScore.a, record.finalScore.b);
   const ago = formatRelative(record.timestamp);
   return (
-    <View style={styles.recentRow}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.recentRow, pressed && styles.rowPressed]}
+    >
       <Text style={styles.recentLine}>
         <Text style={styles.recentMono}>{winner}</Text>
         <Text style={styles.recentVerb}> defeated </Text>
@@ -197,7 +216,7 @@ function RecentRow({ record }: { record: BattleHistoryRecord }) {
         <Text style={styles.recentDot}>·</Text>
         <Text style={styles.recentAgo}>{ago}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

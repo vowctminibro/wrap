@@ -73,8 +73,13 @@ const WINNER_AT_MS = 1700;
 const COMMENTARY_AT_MS = 2000;
 
 export default function BattleResultScreen({ navigation, route }: Props) {
-  const { walletA, walletB } = route.params;
-  const [state, setState] = useState<State>({ kind: 'loading' });
+  const { walletA, walletB, replay } = route.params;
+  const isReplay = replay !== undefined;
+  const [state, setState] = useState<State>(
+    isReplay
+      ? { kind: 'success', result: recordToBattleResult(replay) }
+      : { kind: 'loading' }
+  );
   const [reloadKey, setReloadKey] = useState(0);
 
   // Animation control
@@ -86,12 +91,20 @@ export default function BattleResultScreen({ navigation, route }: Props) {
   const savedRef = useRef(false);
 
   useEffect(() => {
-    let alive = true;
-    setState({ kind: 'loading' });
     setRevealedRounds(0);
     setSkipped(false);
     setShowDetails(false);
     savedRef.current = false;
+
+    // Replay: hand the converted record straight to success state. No
+    // engine call, no loading flicker — animation kicks in immediately.
+    if (replay) {
+      setState({ kind: 'success', result: recordToBattleResult(replay) });
+      return;
+    }
+
+    let alive = true;
+    setState({ kind: 'loading' });
     (async () => {
       try {
         const result = await runBattle(walletA, walletB);
@@ -104,13 +117,15 @@ export default function BattleResultScreen({ navigation, route }: Props) {
     return () => {
       alive = false;
     };
-  }, [walletA, walletB, reloadKey]);
+  }, [walletA, walletB, reloadKey, replay]);
 
   // Persist to local history once the reveal lands on the final view.
   // Ties are not persisted: the leaderboard's ranking model assumes a
   // clean winner per battle, and a tie produces no champion mint either.
+  // Replays skip persistence — they're already in history.
   // Must live above the early returns below so hook order stays stable.
   useEffect(() => {
+    if (replay) return;
     if (state.kind !== 'success') return;
     const isFinalNow =
       skipped || revealedRounds >= state.result.rounds.length;
@@ -120,7 +135,7 @@ export default function BattleResultScreen({ navigation, route }: Props) {
     if (state.result.overallWinner === 'tie') return;
     const record = toHistoryRecord(state.result, walletA, walletB);
     void appendBattle(record);
-  }, [state, skipped, revealedRounds, walletA, walletB]);
+  }, [state, skipped, revealedRounds, walletA, walletB, replay]);
 
   // Loading
   if (state.kind === 'loading') {
@@ -173,6 +188,7 @@ export default function BattleResultScreen({ navigation, route }: Props) {
 
   const onSkip = () => setSkipped(true);
   const onBattleAgain = () => navigation.goBack();
+  const onBackToLeaderboard = () => navigation.goBack();
   const onMintChampion = () => {
     const championCardData = buildChampionCardData(result);
     // TODO(phase-2c): Implement champion-card mint. The existing
@@ -201,9 +217,10 @@ export default function BattleResultScreen({ navigation, route }: Props) {
     <View style={styles.root}>
       <SafeAreaView style={{ flex: 1 }}>
         <Header
-          walletA={walletA}
-          walletB={walletB}
-          showSkip={!isFinal}
+          walletA={result.walletA}
+          walletB={result.walletB}
+          showSkip={!isFinal && !isReplay}
+          isReplay={isReplay}
           onSkip={onSkip}
           onBack={() => navigation.goBack()}
         />
@@ -227,6 +244,8 @@ export default function BattleResultScreen({ navigation, route }: Props) {
               onToggleDetails={() => setShowDetails((s) => !s)}
               onMintChampion={onMintChampion}
               onBattleAgain={onBattleAgain}
+              onBackToLeaderboard={onBackToLeaderboard}
+              isReplay={isReplay}
             />
           )}
         </ScrollView>
@@ -243,12 +262,14 @@ function Header({
   walletA,
   walletB,
   showSkip,
+  isReplay,
   onSkip,
   onBack,
 }: {
   walletA: string;
   walletB: string;
   showSkip: boolean;
+  isReplay: boolean;
   onSkip: () => void;
   onBack: () => void;
 }) {
@@ -259,7 +280,11 @@ function Header({
           <Text style={styles.backBtnText}>‹</Text>
         </Pressable>
         <Text style={styles.topLabel}>BATTLE</Text>
-        {showSkip ? (
+        {isReplay ? (
+          <View style={styles.replayBadge}>
+            <Text style={styles.replayBadgeText}>REPLAY</Text>
+          </View>
+        ) : showSkip ? (
           <Pressable onPress={onSkip} style={styles.skipBtn}>
             <Text style={styles.skipBtnText}>Skip »</Text>
           </Pressable>
@@ -482,12 +507,16 @@ function FinalView({
   onToggleDetails,
   onMintChampion,
   onBattleAgain,
+  onBackToLeaderboard,
+  isReplay,
 }: {
   result: BattleResult;
   showDetails: boolean;
   onToggleDetails: () => void;
   onMintChampion: () => void;
   onBattleAgain: () => void;
+  onBackToLeaderboard: () => void;
+  isReplay: boolean;
 }) {
   const isTie = result.overallWinner === 'tie';
   const winnerColor =
@@ -525,9 +554,9 @@ function FinalView({
         ))}
       </View>
 
-      {!isTie && (
+      {isReplay ? (
         <Pressable
-          onPress={onMintChampion}
+          onPress={onBackToLeaderboard}
           style={({ pressed }) => [
             styles.ctaPrimary,
             pressed && styles.ctaPressed,
@@ -545,28 +574,55 @@ function FinalView({
             end={{ x: 1, y: 0.5 }}
             style={styles.ctaPrimaryInner}
           >
-            <Text style={styles.ctaPrimaryText}>Mint Champion NFT</Text>
+            <Text style={styles.ctaPrimaryText}>Back to Leaderboard</Text>
           </LinearGradient>
         </Pressable>
+      ) : (
+        <>
+          {!isTie && (
+            <Pressable
+              onPress={onMintChampion}
+              style={({ pressed }) => [
+                styles.ctaPrimary,
+                pressed && styles.ctaPressed,
+              ]}
+            >
+              <LinearGradient
+                colors={
+                  gradients.primaryDuo as unknown as readonly [
+                    string,
+                    string,
+                    ...string[],
+                  ]
+                }
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.ctaPrimaryInner}
+              >
+                <Text style={styles.ctaPrimaryText}>Mint Champion NFT</Text>
+              </LinearGradient>
+            </Pressable>
+          )}
+
+          <Pressable
+            onPress={onBattleAgain}
+            style={({ pressed }) => [
+              styles.ctaSecondary,
+              pressed && styles.ctaPressed,
+            ]}
+          >
+            <Text style={styles.ctaSecondaryText}>Battle Again</Text>
+          </Pressable>
+
+          <Pressable onPress={onToggleDetails} style={styles.detailsToggle}>
+            <Text style={styles.detailsToggleText}>
+              {showDetails ? '▴  Hide battle details' : '▾  View battle details'}
+            </Text>
+          </Pressable>
+        </>
       )}
 
-      <Pressable
-        onPress={onBattleAgain}
-        style={({ pressed }) => [
-          styles.ctaSecondary,
-          pressed && styles.ctaPressed,
-        ]}
-      >
-        <Text style={styles.ctaSecondaryText}>Battle Again</Text>
-      </Pressable>
-
-      <Pressable onPress={onToggleDetails} style={styles.detailsToggle}>
-        <Text style={styles.detailsToggleText}>
-          {showDetails ? '▴  Hide battle details' : '▾  View battle details'}
-        </Text>
-      </Pressable>
-
-      {showDetails && (
+      {!isReplay && showDetails && (
         <View style={styles.detailsBlock}>
           {result.rounds.map((round) => (
             <View key={round.category} style={styles.detailsRow}>
@@ -650,9 +706,39 @@ function toHistoryRecord(
       cardType: r.category,
       aScore: r.scoreA,
       bScore: r.scoreB,
-      winner:
-        r.winner === 'A' ? 'a' : r.winner === 'B' ? 'b' : 'tie',
+      winner: r.winner === 'A' ? 'a' : r.winner === 'B' ? 'b' : 'tie',
+      commentary: r.commentary,
     })),
+  };
+}
+
+// Replay path: invert toHistoryRecord. The original A/B engine layout is
+// preserved by inspecting finalScore — whichever side has more round wins
+// was at position A in the live battle, so the replay header shows the
+// same orientation the original animation did.
+function recordToBattleResult(record: BattleHistoryRecord): BattleResult {
+  const winnerWasA = record.finalScore.a >= record.finalScore.b;
+  const walletA = winnerWasA ? record.winnerPubkey : record.loserPubkey;
+  const walletB = winnerWasA ? record.loserPubkey : record.winnerPubkey;
+  return {
+    walletA,
+    walletB,
+    rounds: record.rounds.map((r) => ({
+      // cardType is constrained to BattleCategory by every write path
+      // (engine output + seeded fixtures). Cast is safe in practice; a
+      // corrupt record would render with an undefined icon/label rather
+      // than crash the screen.
+      category: r.cardType as BattleCategory,
+      scoreA: r.aScore,
+      scoreB: r.bScore,
+      winner: r.winner === 'a' ? 'A' : r.winner === 'b' ? 'B' : 'tie',
+      commentary: r.commentary ?? '',
+      provider: 'cache',
+    })),
+    overallWinner: winnerWasA ? 'A' : 'B',
+    finalScore: record.finalScore,
+    createdAt: record.timestamp,
+    cacheKey: `replay:${record.id}`,
   };
 }
 
@@ -830,6 +916,22 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '600',
+  },
+  replayBadge: {
+    minWidth: 76,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.solanaMagenta,
+    alignItems: 'center',
+  },
+  replayBadgeText: {
+    color: colors.solanaMagenta,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 2.5,
+    fontFamily: 'Courier',
   },
   headlineRow: {
     flexDirection: 'row',
