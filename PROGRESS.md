@@ -689,3 +689,6 @@ Closes the antimemetic loop: a share button (↗) in the Leaderboard header capt
 
 ## Day 14 — Landing page deployed (commit 9c1cfa2)
 Live at https://getwrap.vercel.app — alias of landing-orcin-alpha-74.vercel.app. Static Next.js 16 + Tailwind v4 build with hero, 3-feature grid, install CTA, footer. OG metadata configured (1200x630 og-default.png, twitter:card summary_large_image). Deployment protection disabled via Vercel API. Mobile responsive verified at iPhone 14 Pro viewport. Vercel project: landing (under team vowctminibro-7069s-projects).
+
+## Day 14 — Landing page polish: dead CTAs (commit `f4017a6`)
+Fixed two broken CTAs from the polish audit before judges click them. Footer Twitter link now points to `twitter.com/vowctminibro` (was bare `twitter.com/`). The install section's primary "Download APK" `href="#"` was replaced with an unclickable "Available May 11, 2026" gradient label (opacity-50, cursor-default, select-none) plus a "View on GitHub" secondary CTA matching the hero button style. Existing "Star us on GitHub to follow" subtext kept. Deployed to getwrap.vercel.app via `npx vercel --prod` + alias set; verified live.
