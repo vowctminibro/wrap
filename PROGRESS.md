@@ -671,3 +671,9 @@ LeaderboardScreen with Top-5 winners + last-10 recent + empty state, with
 BattleResult hooks appendBattle once per battle (ref-guarded, ties skipped);
 Onboarding gets a magenta-bordered 🏆 Leaderboard CTA. Verified on emulator:
 seeds render, cold-kill persistence holds, no duplicate seeding, back-nav clean.
+
+## 2026-05-02 — Demo battle pairs research
+Verified 6 famous Solana wallets via SNS resolver + RPC (toly.sol 261 SOL very active, mert.sol Helius CEO, armani.sol Backpack, jacklu.sol ME CEO, ilmoi.sol Tensor, gokal.sol Solana cofounder, ansem AVAZv...NXYm). Proposed pairings (Toly vs Raj, Ansem vs Mert, Armani vs Jack Lu) saved to research/demo-battle-pairs.md — committed f17ba27. No mobile/ code touched.
+
+## Day 14 — Leaderboard hot-fix + real seeds (commits `a4a119f`, `6da000e`)
+`a4a119f` moves the persistence `useEffect` above BattleResultScreen's loading/error early returns — fixes "Rendered more hooks than during the previous render" that crashed live battles in `3a9e4aa`. `6da000e` swaps placeholder seeds for verified mainnet pubkeys (Toly, Raj, Mert, Ansem) per `research/demo-battle-pairs.md`. Verified on emulator: pm clear → seeds render with real prefixes (86xC/E645/2CiB/AVAZ); live battle through MintConfirm appends "just now" on top with no hook crash.
