@@ -19,6 +19,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Card from '../components/Card';
 import AffiliateButton from '../components/AffiliateButton';
 import { generateAllInsights } from '../lib/insight-engine';
+import { mapErrorToFriendly } from '../lib/errors';
 import { buildShareText, shareCardImage } from '../lib/share-card';
 import { mintCardAsCNFT } from '../services/cnft-mint';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
@@ -48,7 +49,8 @@ export default function CardRevealScreen({ navigation, route }: Props) {
         const insights = await generateAllInsights(analysis);
         if (alive) setCards(insights);
       } catch (e) {
-        if (alive) setError((e as Error).message);
+        console.error('[reveal] generateAllInsights failed:', e);
+        if (alive) setError(mapErrorToFriendly(e));
       }
     })();
     return () => {
@@ -84,7 +86,8 @@ export default function CardRevealScreen({ navigation, route }: Props) {
         publicKey,
       });
     } catch (e) {
-      Alert.alert('Mint', (e as Error).message);
+      console.error('[reveal] mintCardAsCNFT failed:', e);
+      Alert.alert('Mint', mapErrorToFriendly(e));
     } finally {
       setMinting(false);
     }

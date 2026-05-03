@@ -44,6 +44,7 @@ import {
   type BattleHistoryRecord,
 } from '../services/battleHistory';
 import { shortenAddress } from '../lib/wallet';
+import { mapErrorToFriendly } from '../lib/errors';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type {
   BattleCategory,
@@ -110,8 +111,12 @@ export default function BattleResultScreen({ navigation, route }: Props) {
         const result = await runBattle(walletA, walletB);
         if (alive) setState({ kind: 'success', result });
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : 'Battle failed';
-        if (alive) setState({ kind: 'error', message: msg });
+        // Keep the engineer detail in logcat for debugging; only the
+        // friendly copy reaches the UI.
+        console.error('[battle] runBattle failed:', e);
+        if (alive) {
+          setState({ kind: 'error', message: mapErrorToFriendly(e) });
+        }
       }
     })();
     return () => {

@@ -26,6 +26,13 @@ export type CachedInsight = {
 const TTL_MS = 24 * 60 * 60 * 1000;
 const KEY_PREFIX = 'wrap:insight:';
 
+// Public-domain "sample" pubkey (Helius docs example) used by the
+// onboarding "Try with sample wallet" flow. We deliberately bypass the
+// 24h cache for this one wallet so a judge tapping Sample two or three
+// times sees fresh LLM commentary each tap. Real wallets keep the
+// cache benefit so quotas don't burn on repeat session.
+const SAMPLE_WALLET_PUBKEY = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+
 function dayOfYearUTC(): number {
   const now = new Date();
   const start = Date.UTC(now.getUTCFullYear(), 0, 1);
@@ -42,6 +49,7 @@ export async function getCachedInsight(
   walletPubkey: string,
   cardType: string
 ): Promise<CachedInsight | null> {
+  if (walletPubkey === SAMPLE_WALLET_PUBKEY) return null;
   try {
     const raw = await AsyncStorage.getItem(makeKey(walletPubkey, cardType));
     if (!raw) return null;
@@ -68,6 +76,7 @@ export async function setCachedInsight(
   cardType: string,
   value: CachedInsight
 ): Promise<void> {
+  if (walletPubkey === SAMPLE_WALLET_PUBKEY) return;
   try {
     await AsyncStorage.setItem(
       makeKey(walletPubkey, cardType),
