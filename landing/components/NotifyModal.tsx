@@ -108,11 +108,11 @@ export default function NotifyModal({ open, onClose }: Props) {
           id="notify-title"
           className="text-2xl md:text-3xl font-black tracking-tight mb-3"
         >
-          Be first to try WRAP
+          Stay in the loop
         </h2>
         <p className="text-sm md:text-base text-zinc-400 leading-relaxed mb-6">
-          WRAP launches at Solana Frontier 2026 on May 11. Drop your email
-          and we&apos;ll let you know the moment it&apos;s live.
+          WRAP is live on devnet now. Drop your email and we&apos;ll ping
+          you when mainnet ships and Seeker support lands.
         </p>
 
         {status === 'success' ? (
@@ -120,7 +120,7 @@ export default function NotifyModal({ open, onClose }: Props) {
             role="status"
             className="rounded-xl border border-[#14F195]/40 bg-[#14F195]/[0.06] px-4 py-5 text-center text-[#14F195] font-semibold"
           >
-            You&apos;re in. We&apos;ll email you May 11.
+            You&apos;re in. We&apos;ll ping you when mainnet ships.
           </div>
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-3">

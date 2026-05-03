@@ -76,16 +76,18 @@ export default function Home() {
             Get the app.
           </h2>
           <p className="text-lg text-zinc-400 leading-relaxed mb-10">
-            In open beta. Available on Android via APK download. Seeker support
-            shipping soon.
+            Live on Solana devnet. Download the Android APK to try it now —
+            Seeker support and iOS coming after Frontier 2026.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <span
-              aria-disabled="true"
-              className="inline-flex h-14 items-center justify-center rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] px-10 text-lg font-semibold text-black opacity-50 cursor-default select-none"
+            <a
+              href="https://github.com/vowctminibro/wrap/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-14 items-center justify-center rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] px-10 text-lg font-semibold text-black hover:opacity-90 transition"
             >
-              Available May 11, 2026
-            </span>
+              Download APK
+            </a>
             <a
               href="https://github.com/vowctminibro/wrap"
               target="_blank"
@@ -96,16 +98,16 @@ export default function Home() {
             </a>
           </div>
           <p className="text-sm text-zinc-500 mt-6">
-            iOS support after Frontier.{" "}
+            Source on{" "}
             <a
               href="https://github.com/vowctminibro/wrap"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-zinc-300"
             >
-              Star us on GitHub
-            </a>{" "}
-            to follow.
+              GitHub
+            </a>
+            . Star us to follow.
           </p>
         </div>
       </section>
@@ -114,15 +116,13 @@ export default function Home() {
       <footer className="w-full border-t border-white/5 mt-auto">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/brand/mark.png"
-                alt="WRAP"
-                width={28}
-                height={28}
-              />
-              <span className="text-xl font-black tracking-tight">WRAP</span>
-            </div>
+            <Image
+              src="/brand/lockup.svg"
+              alt="WRAP"
+              width={120}
+              height={28}
+              className="opacity-90"
+            />
             <span className="text-sm text-zinc-500">
               Your Solana wallet, told as a story.
             </span>
@@ -151,12 +151,12 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 text-xs text-zinc-600 text-center">
             Built for Solana Frontier 2026 by{" "}
             <a
-              href="https://twitter.com/vowctminibro"
+              href="https://x.com/VowIMTX"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-zinc-400"
+              className="hover:text-white transition"
             >
-              @vowctminibro
+              @VowIMTX
             </a>
           </div>
         </div>
