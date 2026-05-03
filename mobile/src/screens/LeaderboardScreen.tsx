@@ -33,6 +33,7 @@ import * as Clipboard from 'expo-clipboard';
 import { getHistory, type BattleHistoryRecord } from '../services/battleHistory';
 import { seedHistoryIfNeeded } from '../data/seededBattles';
 import { shortenAddress } from '../lib/wallet';
+import { displayName } from '../data/known-wallets';
 import { formatRelative } from '../lib/relative-time';
 import { uploadImageToPinata } from '../services/pinata';
 import ShareLeaderboardCard from '../components/ShareLeaderboardCard';
@@ -294,7 +295,7 @@ function StandingRow({
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
       <Text style={[styles.rank, { color: rankColor }]}>{rank}</Text>
-      <Text style={styles.rowMono}>{shortenAddress(standing.pubkey, 4)}</Text>
+      <Text style={styles.rowMono}>{displayName(standing.pubkey, 4)}</Text>
       <View style={{ flex: 1 }} />
       <Text style={styles.rowStat}>
         {standing.wins}W / {standing.total}B
@@ -310,8 +311,8 @@ function RecentRow({
   record: BattleHistoryRecord;
   onPress: () => void;
 }) {
-  const winner = shortenAddress(record.winnerPubkey, 4);
-  const loser = shortenAddress(record.loserPubkey, 4);
+  const winner = displayName(record.winnerPubkey, 4);
+  const loser = displayName(record.loserPubkey, 4);
   const hi = Math.max(record.finalScore.a, record.finalScore.b);
   const lo = Math.min(record.finalScore.a, record.finalScore.b);
   const ago = formatRelative(record.timestamp);

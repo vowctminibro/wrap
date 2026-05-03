@@ -34,6 +34,7 @@ import {
   type DemoBattlePair,
 } from '../data/demo-battle-pairs';
 import { shortenAddress } from '../lib/wallet';
+import { displayName } from '../data/known-wallets';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { RootStackParamList } from '../types';
 
@@ -174,7 +175,7 @@ export default function BattleInputScreen({ navigation, route }: Props) {
             <View style={styles.walletBox}>
               <Text style={styles.walletLabel}>WALLET A — YOU</Text>
               <Text style={styles.walletValue}>
-                {shortenAddress(walletA, 6)}
+                {displayName(walletA, 6)}
               </Text>
             </View>
 

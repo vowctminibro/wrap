@@ -44,6 +44,7 @@ import {
   type BattleHistoryRecord,
 } from '../services/battleHistory';
 import { shortenAddress } from '../lib/wallet';
+import { displayName } from '../data/known-wallets';
 import { mapErrorToFriendly } from '../lib/errors';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type {
@@ -87,6 +88,7 @@ export default function BattleResultScreen({ navigation, route }: Props) {
   const [revealedRounds, setRevealedRounds] = useState(0);
   const [skipped, setSkipped] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [slowAnalysis, setSlowAnalysis] = useState(false);
   // Guard so appendBattle fires exactly once per loaded result, even
   // when the final view re-renders or the user toggles details.
   const savedRef = useRef(false);
@@ -95,6 +97,7 @@ export default function BattleResultScreen({ navigation, route }: Props) {
     setRevealedRounds(0);
     setSkipped(false);
     setShowDetails(false);
+    setSlowAnalysis(false);
     savedRef.current = false;
 
     // Replay: hand the converted record straight to success state. No
@@ -106,6 +109,13 @@ export default function BattleResultScreen({ navigation, route }: Props) {
 
     let alive = true;
     setState({ kind: 'loading' });
+    // After 8s with no result, swap the loading subtitle to signal
+    // that we're past the happy-path timeout. The Helius retry layer
+    // in services/helius.ts is already firing under the hood; this is
+    // purely a UX cue so the screen doesn't feel hung.
+    const slowTimer = setTimeout(() => {
+      if (alive) setSlowAnalysis(true);
+    }, 8000);
     (async () => {
       try {
         const result = await runBattle(walletA, walletB);
@@ -121,6 +131,7 @@ export default function BattleResultScreen({ navigation, route }: Props) {
     })();
     return () => {
       alive = false;
+      clearTimeout(slowTimer);
     };
   }, [walletA, walletB, reloadKey, replay]);
 
@@ -148,11 +159,13 @@ export default function BattleResultScreen({ navigation, route }: Props) {
       <View style={styles.root}>
         <SafeAreaView style={styles.centered}>
           <ActivityIndicator size="large" color={colors.solanaPurple} />
-          <Text style={styles.loadingTitle}>Analyzing wallets…</Text>
+          <Text style={styles.loadingTitle}>
+            {slowAnalysis ? 'Retrying on-chain analysis…' : 'Analyzing wallets…'}
+          </Text>
           <View style={styles.vsRow}>
-            <Text style={styles.walletMono}>{shortenAddress(walletA, 5)}</Text>
+            <Text style={styles.walletMono}>{displayName(walletA, 5)}</Text>
             <Text style={styles.vsLabel}>VS</Text>
-            <Text style={styles.walletMono}>{shortenAddress(walletB, 5)}</Text>
+            <Text style={styles.walletMono}>{displayName(walletB, 5)}</Text>
           </View>
           <Text style={styles.loadingSub}>
             Reading on-chain history for both, scoring 4 categories,
@@ -304,7 +317,7 @@ function Header({
             WALLET A
           </Text>
           <Text style={styles.walletBadgeValue}>
-            {shortenAddress(walletA, 4)}
+            {displayName(walletA, 4)}
           </Text>
         </View>
         <Text style={styles.vsBadge}>VS</Text>
@@ -317,7 +330,7 @@ function Header({
             WALLET B
           </Text>
           <Text style={styles.walletBadgeValue}>
-            {shortenAddress(walletB, 4)}
+            {displayName(walletB, 4)}
           </Text>
         </View>
       </View>
@@ -760,8 +773,8 @@ function buildChampionCardData(result: BattleResult): {
   finalScore: { a: number; b: number };
   rounds: { category: string; winner: string; scoreA: number; scoreB: number }[];
 } {
-  const a = shortenAddress(result.walletA, 4);
-  const b = shortenAddress(result.walletB, 4);
+  const a = displayName(result.walletA, 4);
+  const b = displayName(result.walletB, 4);
   const winLabel =
     result.overallWinner === 'A'
       ? `${a} defeated ${b}`

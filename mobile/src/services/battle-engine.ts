@@ -227,9 +227,14 @@ function autoLossRound(
 async function analyzeWalletByAddress(
   address: string
 ): Promise<WalletAnalysis> {
+  // Battle scoring only needs ~100 assets to differentiate the 4
+  // categories — the full 1000×5 enumeration the cNFT mint/CardReveal
+  // paths use blows past the 12s Helius timeout on Toly-scale wallets.
+  // Cap to a single 100-asset page; analyzeWallet's category logic
+  // works fine on the truncated set.
   const [transactions, assets] = await Promise.all([
     getWalletTransactions(address),
-    getAllAssets(address),
+    getAllAssets(address, { pageLimit: 100, maxPages: 1 }),
   ]);
   return analyzeWallet({ address, transactions, assets });
 }

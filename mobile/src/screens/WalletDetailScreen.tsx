@@ -29,6 +29,7 @@ import {
   type WalletStats,
 } from '../services/battleHistory';
 import { shortenAddress } from '../lib/wallet';
+import { displayName } from '../data/known-wallets';
 import { formatRelative } from '../lib/relative-time';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { RootStackParamList } from '../types';
@@ -102,7 +103,7 @@ export default function WalletDetailScreen({ navigation, route }: Props) {
 function IdentityBlock({ pubkey }: { pubkey: string }) {
   return (
     <View style={styles.identityBlock}>
-      <Text style={styles.identityShort}>{shortenAddress(pubkey, 4)}</Text>
+      <Text style={styles.identityShort}>{displayName(pubkey, 4)}</Text>
       <Text style={styles.identityFull} numberOfLines={1} ellipsizeMode="middle">
         {pubkey}
       </Text>
@@ -196,7 +197,7 @@ function BattleRow({
 
       <View style={styles.battleMid}>
         <Text style={styles.battleOpponent}>
-          vs <Text style={styles.battleOpponentMono}>{shortenAddress(opponent, 4)}</Text>
+          vs <Text style={styles.battleOpponentMono}>{displayName(opponent, 4)}</Text>
         </Text>
         <Text style={styles.battleScore}>
           {userScore}-{opponentScore}

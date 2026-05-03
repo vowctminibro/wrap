@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { colors } from '../theme/tokens';
 import { shortenAddress } from '../lib/wallet';
+import { displayName } from '../data/known-wallets';
 import type { BattleHistoryRecord } from '../services/battleHistory';
 
 export type Standing = {
@@ -55,7 +56,7 @@ const ShareLeaderboardCard = forwardRef<View, Props>(function ShareLeaderboardCa
           {top3.map((s, i) => (
             <View key={s.pubkey} style={styles.standingRow}>
               <Text style={[styles.rank, rankColorStyle(i)]}>{i + 1}</Text>
-              <Text style={styles.mono}>{shortenAddress(s.pubkey, 4)}</Text>
+              <Text style={styles.mono}>{displayName(s.pubkey, 4)}</Text>
               <View style={styles.flex} />
               <Text style={styles.stat}>
                 {s.wins}W / {s.total}B
@@ -78,11 +79,11 @@ const ShareLeaderboardCard = forwardRef<View, Props>(function ShareLeaderboardCa
               <View key={r.id} style={styles.recentRow}>
                 <Text style={styles.recentLine} numberOfLines={1}>
                   <Text style={styles.recentMono}>
-                    {shortenAddress(r.winnerPubkey, 4)}
+                    {displayName(r.winnerPubkey, 4)}
                   </Text>
                   <Text style={styles.recentVerb}> defeated </Text>
                   <Text style={styles.recentMono}>
-                    {shortenAddress(r.loserPubkey, 4)}
+                    {displayName(r.loserPubkey, 4)}
                   </Text>
                 </Text>
                 <Text style={styles.recentScore}>

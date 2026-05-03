@@ -73,17 +73,88 @@ function rpcUrl(network: Network): string {
   return `https://${network}.helius-rpc.com/?api-key=${getKey()}`;
 }
 
+// Whole-wallet asset enumeration on Toly-scale pubkeys can blow past
+// the default fetch timeout on free-tier Helius. Wrap every call with
+// an AbortController-driven timeout + a single retry on transient
+// failures (504/502/503/429 + network/abort). Mint and Battle paths
+// both flow through here; the friendly-error layer in lib/errors.ts
+// swallows whatever still escapes after the retry budget is spent.
+
+const FETCH_TIMEOUT_MS = 12_000;
+const RETRY_TIMEOUT_MS = 20_000;
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function isAbortLike(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return (
+    err.name === 'AbortError' ||
+    err.message.toLowerCase().includes('network') ||
+    err.message.toLowerCase().includes('aborted') ||
+    err.message.toLowerCase().includes('timeout')
+  );
+}
+
+async function fetchHeliusWithRetry(
+  url: string,
+  init: RequestInit,
+  label: string
+): Promise<Response> {
+  for (let attempt = 0; attempt <= 1; attempt++) {
+    const timeout = attempt === 0 ? FETCH_TIMEOUT_MS : RETRY_TIMEOUT_MS;
+    try {
+      const res = await fetchWithTimeout(url, init, timeout);
+      if (res.ok) return res;
+      if (attempt === 0 && RETRYABLE_STATUSES.has(res.status)) {
+        console.log(
+          `[helius] retry ${label} after HTTP ${res.status} (attempt 1/1)`
+        );
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (attempt === 0 && isAbortLike(err)) {
+        console.log(
+          `[helius] retry ${label} after abort/network (attempt 1/1):`,
+          (err as Error).message
+        );
+        continue;
+      }
+      throw err;
+    }
+  }
+  // Unreachable — the loop always exits via return/throw on attempt 1.
+  throw new Error(`Helius ${label}: retry exhausted`);
+}
+
 async function rpc<T>(network: Network, method: string, params: unknown): Promise<T> {
-  const res = await fetch(rpcUrl(network), {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 'wrap',
-      method,
-      params,
-    }),
-  });
+  const res = await fetchHeliusWithRetry(
+    rpcUrl(network),
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 'wrap',
+        method,
+        params,
+      }),
+    },
+    method
+  );
   if (!res.ok) {
     throw new Error(`Helius ${method} HTTP ${res.status}`);
   }
@@ -119,7 +190,7 @@ export async function getWalletTransactions(
       `https://api.helius.xyz/v0/addresses/${address}/transactions` +
       `?api-key=${getKey()}&limit=${pageLimit}` +
       (before ? `&before=${before}` : '');
-    const res = await fetch(url);
+    const res = await fetchHeliusWithRetry(url, { method: 'GET' }, 'transactions');
     if (!res.ok) throw new Error(`Helius transactions HTTP ${res.status}`);
     const page = (await res.json()) as EnhancedTransaction[];
     if (!Array.isArray(page) || page.length === 0) break;
@@ -133,27 +204,35 @@ export async function getWalletTransactions(
 /**
  * DAS getAssetsByOwner with showFungible — returns BOTH SPL tokens (with
  * USD price info) AND NFTs / cNFTs in one call. We split downstream.
+ *
+ * `pageLimit` and `maxPages` give callers a way to cap fetch size for
+ * latency-sensitive paths (Battle scoring only needs ~100 assets to
+ * differentiate the 4 categories; the cNFT mint and CardReveal flows
+ * keep the default 1000 × 5 because card commentary benefits from full
+ * enumeration).
  */
 export async function getAllAssets(
   address: string,
-  opts: { network?: Network } = {}
+  opts: { network?: Network; pageLimit?: number; maxPages?: number } = {}
 ): Promise<DASAsset[]> {
   if (keyMissing()) return Mock.getAllAssets(address);
   const network = opts.network ?? 'mainnet';
+  const pageLimit = opts.pageLimit ?? 1000;
+  const maxPages = opts.maxPages ?? 5;
   const out: DASAsset[] = [];
   let page = 1;
   while (true) {
     const res = await rpc<{ items: DASAsset[]; total: number }>(network, 'getAssetsByOwner', {
       ownerAddress: address,
       page,
-      limit: 1000,
+      limit: pageLimit,
       displayOptions: { showFungible: true, showNativeBalance: false },
     });
     if (!res?.items?.length) break;
     out.push(...res.items);
-    if (res.items.length < 1000) break;
+    if (res.items.length < pageLimit) break;
     page += 1;
-    if (page > 5) break; // hard cap — 5k assets is plenty
+    if (page > maxPages) break;
   }
   return out;
 }
