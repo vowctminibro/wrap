@@ -24,10 +24,14 @@ export const DEMO_BATTLE_PAIRS: DemoBattlePair[] = [
   {
     id: 'diamond-vs-paper',
     label: 'Diamond Hand vs Paper Hand',
-    // Anatoly's public-domain demo wallet (Helius docs example).
-    walletA: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
-    walletB: TODO,
-    tagline: 'Conviction meets capitulation',
+    // Anatoly Yakovenko (toly.sol) vs Ansem (@blknoiz06). Pubkeys
+    // researched in research/demo-battle-pairs.md — founder vs trader-
+    // KOL is the cleanest visual contrast for a live demo: Toly's
+    // history skews toward high-balance transfers + program ownership,
+    // Ansem's toward swap-heavy trader activity.
+    walletA: '86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY',
+    walletB: 'AVAZvHLR2PcWpDf8BXY4rVxNHYRBytycHkcB5z5QNXYm',
+    tagline: 'Founder vs trader — who tells a better story?',
   },
   {
     id: 'og-vs-newcomer',
