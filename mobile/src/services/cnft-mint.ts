@@ -62,6 +62,15 @@ function decodeBase64ToBytes(b64: string): Uint8Array {
 export async function mintCardAsCNFT(args: MintArgs): Promise<MintResult> {
   const tree = getTreePubkey();
   const secret = getDelegateSecret();
+  // Diagnostic log so future env-injection regressions surface in
+  // logcat the moment Mint is tapped, instead of as an opaque alert.
+  // Babel inlines `process.env.EXPO_PUBLIC_*` at bundle time, so a
+  // missing var here means the EAS build profile didn't see it.
+  console.log('[mint] env state:', {
+    treeHasValue: !!tree,
+    treeLast4: (tree || '').slice(-4),
+    secretHasValue: !!secret,
+  });
   if (!tree || tree.startsWith('stub_')) {
     throw new Error('No live Merkle tree configured. Run scripts/setup-merkle-tree.ts.');
   }
