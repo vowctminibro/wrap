@@ -6,6 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Modal,
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -68,6 +69,7 @@ const FloatingPreview = ({
 
 export default function OnboardingScreen({ navigation }: Props) {
   const [connecting, setConnecting] = useState(false);
+  const [noWalletModalOpen, setNoWalletModalOpen] = useState(false);
   const insets = useSafeAreaInsets();
 
   const analyzeAndNavigate = async (publicKey: string) => {
@@ -102,15 +104,25 @@ export default function OnboardingScreen({ navigation }: Props) {
 
   const onConnect = async () => {
     setConnecting(true);
+    // Two-stage error handling: MWA failures (no wallet app installed,
+    // user cancels, intent rejected) open the in-app fallback modal so
+    // judges/users without a wallet don't get bounced to chrome.solana.com
+    // by Android's ActivityNotFoundException → unhandled-intent path.
+    // Post-connect failures (network, indexer) keep the existing Alert
+    // surface since the user has already cleared the wallet step.
+    let publicKey: string;
     try {
-      const publicKey =
+      publicKey =
         Platform.OS === 'android'
           ? (await connectWallet()).publicKey
           : DEV_FALLBACK_PUBKEY;
+    } catch {
+      setConnecting(false);
+      setNoWalletModalOpen(true);
+      return;
+    }
+    try {
       await analyzeAndNavigate(publicKey);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Wallet connection failed';
-      Alert.alert('Connect Wallet', msg);
     } finally {
       setConnecting(false);
     }
@@ -239,6 +251,61 @@ export default function OnboardingScreen({ navigation }: Props) {
           <SolanaBadge size="sm" />
         </View>
       </SafeAreaView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={noWalletModalOpen}
+        onRequestClose={() => setNoWalletModalOpen(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setNoWalletModalOpen(false)}
+        >
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Text style={styles.modalTitle}>Solana Wallet Required</Text>
+            <Text style={styles.modalBody}>
+              Connecting requires Seeker, Phantom, or another Solana wallet
+              app installed on this device. Try the sample wallet to explore
+              WRAP.
+            </Text>
+            <Pressable
+              onPress={() => {
+                setNoWalletModalOpen(false);
+                onTrySample();
+              }}
+              style={({ pressed }) => [
+                styles.modalPrimary,
+                pressed && styles.ctaPressed,
+              ]}
+            >
+              <LinearGradient
+                colors={
+                  gradients.primary as unknown as readonly [
+                    string,
+                    string,
+                    ...string[]
+                  ]
+                }
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.modalPrimaryGrad}
+              >
+                <Text style={styles.modalPrimaryText}>Try Sample Wallet</Text>
+              </LinearGradient>
+            </Pressable>
+            <Pressable
+              onPress={() => setNoWalletModalOpen(false)}
+              style={({ pressed }) => [
+                styles.modalSecondary,
+                pressed && styles.ctaPressed,
+              ]}
+            >
+              <Text style={styles.modalSecondaryText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -386,5 +453,58 @@ const styles = StyleSheet.create({
   badgeWrap: {
     alignItems: 'center',
     marginTop: spacing.sm,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  modalCard: {
+    backgroundColor: colors.bg,
+    borderRadius: 24,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.solanaPurple,
+  },
+  modalTitle: {
+    color: colors.white,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: spacing.sm,
+  },
+  modalBody: {
+    color: colors.textSecondary,
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: spacing.md,
+  },
+  modalPrimary: {
+    height: 52,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+    marginBottom: spacing.sm,
+  },
+  modalPrimaryGrad: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalPrimaryText: {
+    color: colors.white,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  modalSecondary: {
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSecondaryText: {
+    color: colors.textMuted,
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
