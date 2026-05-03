@@ -62,7 +62,14 @@ const FloatingPreview = ({
       end={{ x: 1, y: 1 }}
     >
       <Text style={styles.floatingLabel}>{label}</Text>
-      <Text style={styles.floatingStat}>{stat}</Text>
+      <Text
+        style={styles.floatingStat}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.5}
+      >
+        {stat}
+      </Text>
     </LinearGradient>
   </View>
 );
@@ -171,9 +178,11 @@ export default function OnboardingScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.floatingStack}>
-          {/* Decorative preview cards. Stat slot uses an abstract glyph,
-              not a measured value — judges noticed hardcoded "847" and
-              "1,284" looking like real per-wallet data. */}
+          {/* Decorative preview cards. Stat slot holds descriptive
+              labels (auto-shrink via adjustsFontSizeToFit) instead of
+              hardcoded numbers — judges noticed "847" and "1,284"
+              looking like real per-wallet data. Card 2's "TOP 1%" is
+              a category descriptor, not a measured value, so it stays. */}
           <FloatingPreview
             rotate={-14}
             top={20}
@@ -181,7 +190,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             scale={0.78}
             gradient={gradients.card.diamond}
             label="DIAMOND"
-            stat="◆◆◆"
+            stat="DAYS HOLDING"
           />
           <FloatingPreview
             rotate={6}
@@ -199,7 +208,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             scale={0.82}
             gradient={gradients.card.recap}
             label="2026 RECAP"
-            stat="◆◆◆"
+            stat="ON-CHAIN ACTIVITY"
           />
         </View>
 

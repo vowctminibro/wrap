@@ -67,8 +67,8 @@ const CATEGORY_META: Record<BattleCategory, { icon: string; label: string }> = {
   diversity: { icon: '🎨', label: 'Diversity' },
 };
 
-const ROUND_DURATION_MS = 2500; // total time per round
-const SCORE_DURATION_MS = 1200;
+const ROUND_DURATION_MS = 1800; // total time per round
+const SCORE_DURATION_MS = 800;
 const SCORE_B_OFFSET_MS = 200;
 const WINNER_AT_MS = 1700;
 const COMMENTARY_AT_MS = 2000;
