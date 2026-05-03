@@ -24,13 +24,13 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    creator: "@vowctminibro",
+    creator: "@getwrap",
     title: "WRAP — Your Solana wallet, told as a story",
     description:
       "AI-generated personality cards. Battle other wallets. Mint your story on-chain.",
     images: ["/og-default.png"],
   },
-  icons: { icon: "/brand/app-icon.png" },
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
