@@ -29,6 +29,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b7e34d3f-d90c-432b-803c-2e9ee21912d8"
+      }
+    },
+    "owner": "vowctminibro"
   }
 }
