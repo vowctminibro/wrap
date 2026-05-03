@@ -1,9 +1,13 @@
 // Tertiary affiliate CTA — small, below primary Share/Mint actions.
 // Maps cardType to the partner ecosystem most relevant to the story:
 //
-//   diamond → MarginFi   ("Borrow against this without selling")
 //   og      → Magic Eden ("Mint commemorative NFT via Magic Eden")
 //   recap   → Jupiter    ("Swap into your top token via Jupiter")
+//
+// (Diamond → MarginFi "Borrow against this without selling" was
+// removed Day 14: the lending integration is post-Frontier work, so
+// the link was dead — `null` from SPECS makes the button render
+// nothing for diamond cards rather than dangle a roadmap promise.)
 //
 // All links carry ?ref=WRAP_SOL so the partner can attribute and we can
 // track affiliate conversion in Phase Polish.
@@ -20,10 +24,6 @@ type Spec = {
 };
 
 const SPECS: Partial<Record<CardType, Spec>> = {
-  diamond: {
-    label: 'Borrow against this without selling →',
-    href: () => `https://app.marginfi.com?ref=${REF}`,
-  },
   og: {
     label: 'Mint commemorative NFT via Magic Eden →',
     href: () => `https://magiceden.io?ref=${REF}`,

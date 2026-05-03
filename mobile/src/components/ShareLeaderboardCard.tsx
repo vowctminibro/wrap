@@ -98,7 +98,9 @@ const ShareLeaderboardCard = forwardRef<View, Props>(function ShareLeaderboardCa
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.tagline}>Your wallet has a story.</Text>
+        {/* Tagline matches landing copy verbatim so the tweeted image
+            and getwrap.vercel.app read with the same canonical line. */}
+        <Text style={styles.tagline}>Your Solana wallet, told as a story.</Text>
         <Text style={styles.url}>getwrap.vercel.app</Text>
       </View>
     </View>

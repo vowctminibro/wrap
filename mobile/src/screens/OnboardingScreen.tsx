@@ -171,6 +171,9 @@ export default function OnboardingScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.floatingStack}>
+          {/* Decorative preview cards. Stat slot uses an abstract glyph,
+              not a measured value — judges noticed hardcoded "847" and
+              "1,284" looking like real per-wallet data. */}
           <FloatingPreview
             rotate={-14}
             top={20}
@@ -178,7 +181,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             scale={0.78}
             gradient={gradients.card.diamond}
             label="DIAMOND"
-            stat="847"
+            stat="◆◆◆"
           />
           <FloatingPreview
             rotate={6}
@@ -196,7 +199,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             scale={0.82}
             gradient={gradients.card.recap}
             label="2026 RECAP"
-            stat="1,284"
+            stat="◆◆◆"
           />
         </View>
 
