@@ -1,13 +1,17 @@
 // Tertiary affiliate CTA — small, below primary Share/Mint actions.
 // Maps cardType to the partner ecosystem most relevant to the story:
 //
-//   og      → Magic Eden ("Mint commemorative NFT via Magic Eden")
 //   recap   → Jupiter    ("Swap into your top token via Jupiter")
 //
 // (Diamond → MarginFi "Borrow against this without selling" was
 // removed Day 14: the lending integration is post-Frontier work, so
 // the link was dead — `null` from SPECS makes the button render
-// nothing for diamond cards rather than dangle a roadmap promise.)
+// nothing for diamond cards rather than dangle a roadmap promise.
+//
+// OG → Magic Eden was removed Day 16 (Round 4): no confirmed
+// partnership and the ?ref=WRAP_SOL code didn't track anything, so
+// the CTA was implying a relationship we don't have. If Vow signs a
+// real ME affiliate later, restore this spec.)
 //
 // All links carry ?ref=WRAP_SOL so the partner can attribute and we can
 // track affiliate conversion in Phase Polish.
@@ -24,10 +28,6 @@ type Spec = {
 };
 
 const SPECS: Partial<Record<CardType, Spec>> = {
-  og: {
-    label: 'Mint commemorative NFT via Magic Eden →',
-    href: () => `https://magiceden.io?ref=${REF}`,
-  },
   recap: {
     label: 'Swap into your top token via Jupiter →',
     href: (a) => {
@@ -49,12 +49,16 @@ export default function AffiliateButton({
 
   const onPress = async () => {
     const url = spec.href(analysis, card);
+    // No canOpenURL precheck — Android 11+ (API 30+) returns false for
+    // https URLs unless the host app declares <queries> in its manifest,
+    // which made the CTA tap-fail with "Could not open …" even though
+    // the URL was valid and the OS would dispatch to the default browser.
+    // Linking.openURL itself throws if nothing handles the intent, so
+    // the catch below is the only error path we actually need.
     try {
-      const can = await Linking.canOpenURL(url);
-      if (can) await Linking.openURL(url);
-      else Alert.alert('Affiliate', `Could not open ${url}`);
+      await Linking.openURL(url);
     } catch (e) {
-      Alert.alert('Affiliate', (e as Error).message);
+      Alert.alert('Affiliate', (e as Error).message || 'Could not open link');
     }
   };
 
