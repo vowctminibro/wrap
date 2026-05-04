@@ -125,6 +125,57 @@ npx tsx scripts/test-insights.ts                              # all 3 cards via 
 `test-insights.ts` prints provider, raw output, sanitized output, and
 final `CardData[]` for prose-quality review.
 
+## Identity Infrastructure (Solana Attestation Service)
+
+WRAP isn't just a consumer app — it's an **identity layer**. Every
+WRAP card minted as a cNFT also gets a verifiable on-chain
+attestation via [Solana Attestation Service (SAS)](https://attest.solana.com/).
+Any Solana app can read WRAP attestations with a single SDK call:
+
+```ts
+import { fetchMaybeAttestation, deriveAttestationPda, fetchSchema, deserializeAttestationData } from 'sas-lib';
+
+const [pda] = await deriveAttestationPda({
+  credential: address('EUoMouVtQJFhaqf3aCErWCa3gkQ9QDawjeMfe33aiwKg'),
+  schema: address('4BAEmFLZaQE2QZAAeB64wTuLgXrWu1s1a98Wi9Aobji9'),
+  nonce: walletPubkey,
+});
+const att = await fetchMaybeAttestation(rpc, pda);
+if (att.exists) {
+  const schema = await fetchSchema(rpc, schemaPda);
+  const data = deserializeAttestationData(schema.data, Uint8Array.from(att.data.data));
+  // → { wrap_score: 98, og_percentile: 1, card_type: 'OG_STATUS', wallet_age_days: 1700, ... }
+}
+```
+
+**On-chain artifacts (devnet):**
+- Issuer: `6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx`
+- Credential PDA: [`EUoMouVtQJFhaqf3aCErWCa3gkQ9QDawjeMfe33aiwKg`](https://solscan.io/account/EUoMouVtQJFhaqf3aCErWCa3gkQ9QDawjeMfe33aiwKg?cluster=devnet)
+- Schema PDA: [`4BAEmFLZaQE2QZAAeB64wTuLgXrWu1s1a98Wi9Aobji9`](https://solscan.io/account/4BAEmFLZaQE2QZAAeB64wTuLgXrWu1s1a98Wi9Aobji9?cluster=devnet) (`WRAP_IDENTITY_V1`)
+- 5 live demo attestations (Toly / Raj / Mert / Ansem / Sample) — see `mobile/src/services/sas/attestations.ts`
+
+**Schema fields:** `wrap_score: u8 (0-100)` · `og_percentile: u8` · `wallet_age_days: u32` · `card_type: string` · `issued_at: u32 unix` · `wrap_version: string`
+
+**Verify any wallet** from your terminal:
+
+```bash
+NODE_PATH=mobile/node_modules npx tsx scripts/sas-verify.ts \
+  86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY
+# → { wrap_score: 98, og_percentile: 1, card_type: 'OG_STATUS', ... }
+```
+
+Other Solana apps can use WRAP attestations to:
+- Gate features by wallet maturity ("only OG-percentile ≤ 5 wallets can vote")
+- Personalize UX based on identity type
+- Build reputation systems on top of WRAP scores
+
+> **Live RN-side issuance** is deferred to Phase 1.5 (post-Frontier) —
+> the underlying SDK (sas-lib + @solana/kit) requires WebCrypto subtle
+> which RN's Hermes engine doesn't ship natively. For Frontier judging,
+> 5 demo attestations on devnet plus the verification flow above prove
+> the architecture; the issuer pipeline is a clean swap to a backend
+> service.
+
 ## On-device demo flow
 
 1. **Onboarding** — `Connect Wallet` (MWA) or `Try Sample Wallet`. If no

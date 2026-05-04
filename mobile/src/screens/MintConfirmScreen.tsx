@@ -26,6 +26,8 @@ import Card from '../components/Card';
 import Confetti from '../components/Confetti';
 import SolanaBadge from '../components/SolanaBadge';
 import { buildShareText, shareCardImage } from '../lib/share-card';
+import { getSasAttestation } from '../services/sas/attestations';
+import { sasAttestationSolscanUrl } from '../services/sas/constants';
 import type { RootStackParamList } from '../types';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 
@@ -38,12 +40,27 @@ export default function MintConfirmScreen({ navigation, route }: Props) {
   const { signature, cardData, publicKey } = route.params;
   const cardWrapRef = useRef<View>(null);
 
+  // SAS attestation badge: Round 5 Phase 1 issued one for each known
+  // demo wallet (Toly/Raj/Mert/Ansem/Sample) on devnet. Static lookup
+  // is intentional — no client-side crypto, no RPC roundtrip on render.
+  const sasAttestation = getSasAttestation(publicKey);
+
   const onSolscan = async () => {
     const url = SOLSCAN_DEVNET(signature);
     try {
       await Linking.openURL(url);
     } catch {
       Alert.alert('Solscan', `Could not open ${url}`);
+    }
+  };
+
+  const onSasBadgePress = async () => {
+    if (!sasAttestation) return;
+    const url = sasAttestationSolscanUrl(sasAttestation.pda);
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('SAS Attestation', `Could not open ${url}`);
     }
   };
 
@@ -99,6 +116,21 @@ export default function MintConfirmScreen({ navigation, route }: Props) {
             <Text style={styles.providerText}>
               generated via {sourceLabel(cardData.source)}
             </Text>
+          ) : null}
+          {sasAttestation ? (
+            <Pressable
+              onPress={onSasBadgePress}
+              style={({ pressed }) => [
+                styles.sasBadge,
+                pressed && styles.sasBadgePressed,
+              ]}
+              accessibilityLabel="View SAS attestation on Solscan"
+            >
+              <View style={styles.sasBadgeDot} />
+              <Text style={styles.sasBadgeText}>
+                Verified via SAS · tap to view on-chain
+              </Text>
+            </Pressable>
           ) : null}
         </View>
 
@@ -268,6 +300,32 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginTop: 4,
+  },
+  sasBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.solanaGreen + '66',
+    backgroundColor: colors.solanaGreen + '14',
+    marginTop: spacing.sm,
+  },
+  sasBadgePressed: { opacity: 0.7 },
+  sasBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.solanaGreen,
+  },
+  sasBadgeText: {
+    color: colors.solanaGreen,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   ctas: {
     flexDirection: 'row',

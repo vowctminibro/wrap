@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  Linking,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type ViewToken,
@@ -21,6 +22,8 @@ import AffiliateButton from '../components/AffiliateButton';
 import { generateAllInsights } from '../lib/insight-engine';
 import { mapErrorToFriendly } from '../lib/errors';
 import { buildShareText, shareCardImage } from '../lib/share-card';
+import { hasSasAttestation, getSasAttestation } from '../services/sas/attestations';
+import { sasAttestationSolscanUrl } from '../services/sas/constants';
 import { mintCardAsCNFT } from '../services/cnft-mint';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { CardData, RootStackParamList } from '../types';
@@ -192,6 +195,29 @@ export default function CardRevealScreen({ navigation, route }: Props) {
           )}
         />
 
+        {/* SAS attestation badge — Round 5 Phase 1. Static lookup
+            against the 5 demo wallets we attested at issuer-setup
+            time; no runtime crypto, no RPC. Tap opens Solscan. */}
+        {hasSasAttestation(publicKey) ? (
+          <Pressable
+            onPress={() => {
+              const att = getSasAttestation(publicKey);
+              if (!att) return;
+              Linking.openURL(sasAttestationSolscanUrl(att.pda)).catch(() => {
+                Alert.alert('SAS', 'Could not open attestation on Solscan.');
+              });
+            }}
+            style={({ pressed }) => [
+              styles.sasBadge,
+              pressed && styles.sasBadgePressed,
+            ]}
+            accessibilityLabel="View SAS attestation"
+          >
+            <View style={styles.sasBadgeDot} />
+            <Text style={styles.sasBadgeText}>SAS-attested identity</Text>
+          </Pressable>
+        ) : null}
+
         {/* Dot indicator */}
         <View style={styles.dots}>
           {cards.map((_, i) => (
@@ -339,6 +365,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: CARD_HORIZONTAL_PAD,
     paddingVertical: spacing.sm,
     justifyContent: 'center',
+  },
+  sasBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.solanaGreen + '66',
+    backgroundColor: colors.solanaGreen + '14',
+    marginTop: spacing.xs,
+  },
+  sasBadgePressed: { opacity: 0.7 },
+  sasBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.solanaGreen,
+  },
+  sasBadgeText: {
+    color: colors.solanaGreen,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   dots: {
     flexDirection: 'row',
