@@ -11,7 +11,7 @@
 // Phase 2b (next session) will replace BattleResultScreen's stub
 // with the 4-round reveal + Champion-NFT mint CTA.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,7 @@ import {
 } from '../data/demo-battle-pairs';
 import { shortenAddress } from '../lib/wallet';
 import { displayName } from '../data/known-wallets';
+import { checkSeekerGenesis } from '../services/seeker/genesis';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { RootStackParamList } from '../types';
 
@@ -56,6 +57,19 @@ function isValidPubkey(s: string): boolean {
 export default function BattleInputScreen({ navigation, route }: Props) {
   const { walletA } = route.params;
   const [walletB, setWalletB] = useState('');
+  const [walletAIsOG, setWalletAIsOG] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    checkSeekerGenesis(walletA)
+      .then((s) => {
+        if (alive && s.holds) setWalletAIsOG(true);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [walletA]);
 
   const trimmedB = walletB.trim();
   const isValid = isValidPubkey(trimmedB);
@@ -173,7 +187,12 @@ export default function BattleInputScreen({ navigation, route }: Props) {
             <Text style={styles.h1}>Battle a custom wallet</Text>
 
             <View style={styles.walletBox}>
-              <Text style={styles.walletLabel}>WALLET A — YOU</Text>
+              <View style={styles.walletLabelRow}>
+                <Text style={styles.walletLabel}>WALLET A — YOU</Text>
+                {walletAIsOG ? (
+                  <Text style={styles.seekerOgTag}>⚡ SEEKER OG</Text>
+                ) : null}
+              </View>
               <Text style={styles.walletValue}>
                 {displayName(walletA, 6)}
               </Text>
@@ -355,6 +374,18 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 2,
     marginBottom: 6,
+  },
+  walletLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  seekerOgTag: {
+    color: colors.solanaPurple,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
   },
   walletValue: {
     color: colors.white,

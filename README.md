@@ -176,6 +176,19 @@ Other Solana apps can use WRAP attestations to:
 > the architecture; the issuer pipeline is a clean swap to a backend
 > service.
 
+## Built for Seeker
+
+WRAP is mobile-native and built specifically for Solana Mobile Seeker:
+
+- **Mobile Wallet Adapter (MWA)** for Seeker / Phantom / Solflare connect — no extension, no browser tab, no seed-phrase friction
+- **Seed Vault** signing path through MWA on Seeker
+- **Seeker Genesis Token detection** — Genesis holders get instant OG
+  status flair across Cards, Battle, and Onboarding (purely cosmetic;
+  Genesis never affects Battle scoring — pay-to-win perception kills
+  the narrative)
+- **APK distribution** via the v0.1.0-preview GitHub release today;
+  Solana dApp Store submission queued for Q3 2026 (post-mainnet)
+
 ## On-device demo flow
 
 1. **Onboarding** — `Connect Wallet` (MWA) or `Try Sample Wallet`. If no

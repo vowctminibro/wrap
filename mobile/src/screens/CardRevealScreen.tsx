@@ -24,6 +24,7 @@ import { mapErrorToFriendly } from '../lib/errors';
 import { buildShareText, shareCardImage } from '../lib/share-card';
 import { hasSasAttestation, getSasAttestation } from '../services/sas/attestations';
 import { sasAttestationSolscanUrl } from '../services/sas/constants';
+import { checkSeekerGenesis } from '../services/seeker/genesis';
 import { mintCardAsCNFT } from '../services/cnft-mint';
 import { colors, gradients, radius, spacing } from '../theme/tokens';
 import type { CardData, RootStackParamList } from '../types';
@@ -40,6 +41,7 @@ export default function CardRevealScreen({ navigation, route }: Props) {
   const [page, setPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [minting, setMinting] = useState(false);
+  const [isSeekerOG, setIsSeekerOG] = useState(false);
   const listRef = useRef<FlatList<CardData>>(null);
   // One ref per rendered card. Populated via callback ref so we can
   // capture the currently-visible card with view-shot at Share time.
@@ -47,6 +49,13 @@ export default function CardRevealScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     let alive = true;
+    // Genesis Token detection runs in parallel with insight generation
+    // — purely cosmetic flair, never blocks the card reveal flow.
+    checkSeekerGenesis(publicKey)
+      .then((status) => {
+        if (alive && status.holds) setIsSeekerOG(true);
+      })
+      .catch(() => {});
     (async () => {
       try {
         const insights = await generateAllInsights(analysis);
@@ -59,7 +68,7 @@ export default function CardRevealScreen({ navigation, route }: Props) {
     return () => {
       alive = false;
     };
-  }, [analysis]);
+  }, [analysis, publicKey]);
 
   const onShare = async () => {
     const card = cards?.[page];
@@ -168,6 +177,18 @@ export default function CardRevealScreen({ navigation, route }: Props) {
             </Pressable>
           </View>
         </View>
+
+        {/* Seeker Genesis Token holder = OG status flair. Pure cosmetic
+            — no Battle scoring impact, no feature gating. Lights up
+            only when Hermes provides the real Genesis mint and the
+            wallet actually holds one. */}
+        {isSeekerOG ? (
+          <View style={styles.seekerBadgeRow}>
+            <View style={styles.seekerBadge}>
+              <Text style={styles.seekerBadgeText}>🎟️  SEEKER OG</Text>
+            </View>
+          </View>
+        ) : null}
 
         {/* Card carousel */}
         <FlatList
@@ -378,6 +399,25 @@ const styles = StyleSheet.create({
     borderColor: colors.solanaGreen + '66',
     backgroundColor: colors.solanaGreen + '14',
     marginTop: spacing.xs,
+  },
+  seekerBadgeRow: {
+    alignItems: 'center',
+    paddingHorizontal: CARD_HORIZONTAL_PAD,
+    marginBottom: spacing.xs,
+  },
+  seekerBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.solanaPurple + '88',
+    backgroundColor: colors.solanaPurple + '22',
+  },
+  seekerBadgeText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   sasBadgePressed: { opacity: 0.7 },
   sasBadgeDot: {

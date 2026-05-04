@@ -9,6 +9,7 @@ import {
   Modal,
   Platform,
   ScrollView,
+  ToastAndroid,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ import { colors, gradients, fontSizes, spacing, radius } from '../theme/tokens';
 import { connectWallet } from '../lib/wallet';
 import { analyzeWallet } from '../lib/wallet-analyzer';
 import { getAllAssets, getWalletTransactions } from '../services/helius';
+import { checkSeekerGenesis } from '../services/seeker/genesis';
 import SolanaBadge from '../components/SolanaBadge';
 import Wordmark from '../components/Wordmark';
 import Mark from '../components/Mark';
@@ -107,6 +109,18 @@ export default function OnboardingScreen({ navigation }: Props) {
       );
       return;
     }
+
+    // Seeker Genesis flair — fire-and-forget; toast only fires when
+    // the wallet actually holds Genesis (real mint required, see
+    // services/seeker/genesis.ts). No awaiting; navigation proceeds
+    // regardless. Pure cosmetic, no gameplay impact.
+    checkSeekerGenesis(publicKey)
+      .then((s) => {
+        if (s.holds && Platform.OS === 'android') {
+          ToastAndroid.show('Welcome, Seeker OG ✨', ToastAndroid.SHORT);
+        }
+      })
+      .catch(() => {});
 
     navigation.navigate('CardReveal', { publicKey, analysis });
   };
