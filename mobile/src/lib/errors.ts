@@ -34,6 +34,15 @@ export function mapErrorToFriendly(err: unknown): string {
     return 'On-chain analysis timed out.' + RETRY_HINT;
   }
 
+  // Helius DAS payload-size rejection — token-heavy wallets push the
+  // showFungible response past Helius's per-response cap. The battle
+  // path now swallows this and continues with empty assets, but other
+  // paths (CardReveal, mint) still surface it; keep the friendly copy
+  // so the user sees signal instead of "Something went wrong".
+  if (lower.includes('response is too big')) {
+    return "This wallet has too many tokens for our indexer to enumerate. Try a different one.";
+  }
+
   const status = statusFromMessage(raw);
   if (status !== null) {
     if (status === 429) {

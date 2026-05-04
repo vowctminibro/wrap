@@ -15,7 +15,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { getAllAssets, getWalletTransactions } from './helius';
+import { getAllAssets, getWalletTransactions, type DASAsset } from './helius';
 import { callLLM, getLastProvider, type Provider } from './llm';
 import { analyzeWallet } from '../lib/wallet-analyzer';
 import { shortenAddress } from '../lib/wallet';
@@ -232,10 +232,25 @@ async function analyzeWalletByAddress(
   // paths use blows past the 12s Helius timeout on Toly-scale wallets.
   // Cap to a single 100-asset page; analyzeWallet's category logic
   // works fine on the truncated set.
-  const [transactions, assets] = await Promise.all([
-    getWalletTransactions(address),
-    getAllAssets(address, { pageLimit: 100, maxPages: 1 }),
-  ]);
+  //
+  // Round 4: tolerate Helius DAS "Response is too big" (raised on
+  // token-heavy wallets like Sample/Toly/Mert when showFungible:true
+  // pushes payload past Helius's per-response cap, even at limit=100).
+  // Three of four scoring categories (og_status, volume, diversity)
+  // depend only on transactions; the fourth (diamond_hand) takes a
+  // marginal +0..3 bonus from drawdownsHeld which is empty for these
+  // demo wallets anyway. Falling back to assets:[] keeps the battle
+  // running instead of dropping the user on the generic error screen.
+  const transactions = await getWalletTransactions(address);
+  let assets: DASAsset[] = [];
+  try {
+    assets = await getAllAssets(address, { pageLimit: 100, maxPages: 1 });
+  } catch (err) {
+    console.warn(
+      `[battle] getAllAssets failed for ${shortenAddress(address)}, scoring without assets:`,
+      (err as Error).message
+    );
+  }
   return analyzeWallet({ address, transactions, assets });
 }
 

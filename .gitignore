@@ -3,6 +3,9 @@
 .env.*
 .env.tokens
 
+# Runtime-generated AsyncStorage shim for scripts/test-battle.ts
+scripts/fake-asyncstorage.cjs
+
 # Landing page build artifacts
 landing/.next/
 landing/node_modules/
