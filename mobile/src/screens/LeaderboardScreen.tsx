@@ -89,7 +89,14 @@ export default function LeaderboardScreen({ navigation }: Props) {
 
   const onShare = useCallback(async () => {
     if (sharing) return;
-    if (!shareCardRef.current) return;
+    if (!shareCardRef.current) {
+      // Off-screen render target hasn't mounted/measured yet. Silent
+      // return previously made the tap look broken; toast lets the user
+      // know to retry once the screen finishes laying out.
+      console.warn('[share] shareCardRef.current is null — capture target not mounted');
+      showToast('Loading… try again in a moment');
+      return;
+    }
     setSharing(true);
 
     // Phase 2C share flow: capture → upload → open share sheet.
@@ -192,22 +199,31 @@ export default function LeaderboardScreen({ navigation }: Props) {
             <Text style={styles.backBtnText}>‹</Text>
           </Pressable>
           <Text style={styles.headerLabel}>BATTLE LEADERBOARD</Text>
-          <Pressable
-            onPress={onShare}
-            disabled={sharing || isEmpty}
-            style={({ pressed }) => [
-              styles.shareBtn,
-              (sharing || isEmpty) && styles.shareBtnDisabled,
-              pressed && styles.shareBtnPressed,
-            ]}
-            accessibilityLabel="Share leaderboard"
-          >
-            {sharing ? (
-              <ActivityIndicator color={colors.solanaMagenta} size="small" />
-            ) : (
-              <Text style={styles.shareBtnText}>↗</Text>
-            )}
-          </Pressable>
+          {/* Share button is hidden — not just disabled — when there's
+              nothing to share. The previous opacity:0.4 disabled state
+              read as "tap-broken" on-Seeker because the icon still
+              looked tappable. Empty leaderboard happens only after a
+              dev clearHistory(); seeded launches always populate. */}
+          {isEmpty ? (
+            <View style={styles.shareBtnPlaceholder} />
+          ) : (
+            <Pressable
+              onPress={onShare}
+              disabled={sharing}
+              style={({ pressed }) => [
+                styles.shareBtn,
+                sharing && styles.shareBtnDisabled,
+                pressed && styles.shareBtnPressed,
+              ]}
+              accessibilityLabel="Share leaderboard"
+            >
+              {sharing ? (
+                <ActivityIndicator color={colors.solanaMagenta} size="small" />
+              ) : (
+                <Text style={styles.shareBtnText}>↗</Text>
+              )}
+            </Pressable>
+          )}
         </View>
 
         {isEmpty ? (
@@ -406,6 +422,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Placeholder keeps the back/title/share-slot layout balanced when
+  // the share button is hidden in the empty state.
+  shareBtnPlaceholder: { width: 40, height: 40 },
   shareBtnPressed: { opacity: 0.7 },
   shareBtnDisabled: { opacity: 0.4 },
   shareBtnText: {
