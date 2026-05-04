@@ -241,6 +241,10 @@ export default function BattleResultScreen({ navigation, route }: Props) {
           isReplay={isReplay}
           onSkip={onSkip}
           onBack={() => navigation.goBack()}
+          onReplay={() => {
+            setRevealedRounds(0);
+            setSkipped(false);
+          }}
         />
 
         <ScrollView
@@ -283,6 +287,7 @@ function Header({
   isReplay,
   onSkip,
   onBack,
+  onReplay,
 }: {
   walletA: string;
   walletB: string;
@@ -290,6 +295,7 @@ function Header({
   isReplay: boolean;
   onSkip: () => void;
   onBack: () => void;
+  onReplay: () => void;
 }) {
   return (
     <View style={styles.header}>
@@ -299,9 +305,21 @@ function Header({
         </Pressable>
         <Text style={styles.topLabel}>BATTLE</Text>
         {isReplay ? (
-          <View style={styles.replayBadge}>
+          // Round 4.5: REPLAY was a static View badge, judges tapped it
+          // expecting the animation to restart. Now a Pressable that
+          // resets the reveal counters so the cached battle plays through
+          // again from round 1. No engine refetch — we already hold the
+          // full result locally.
+          <Pressable
+            onPress={onReplay}
+            style={({ pressed }) => [
+              styles.replayBadge,
+              pressed && styles.replayBadgePressed,
+            ]}
+            accessibilityLabel="Replay battle animation"
+          >
             <Text style={styles.replayBadgeText}>REPLAY</Text>
-          </View>
+          </Pressable>
         ) : showSkip ? (
           <Pressable onPress={onSkip} style={styles.skipBtn}>
             <Text style={styles.skipBtnText}>Skip »</Text>
@@ -943,6 +961,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.solanaMagenta,
     alignItems: 'center',
+  },
+  replayBadgePressed: {
+    opacity: 0.7,
+    backgroundColor: colors.solanaMagenta + '22',
   },
   replayBadgeText: {
     color: colors.solanaMagenta,

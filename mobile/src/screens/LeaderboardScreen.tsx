@@ -21,6 +21,7 @@ import {
   ToastAndroid,
   Platform,
   Alert,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -52,7 +53,10 @@ type Standing = {
 
 function showToast(msg: string) {
   if (Platform.OS === 'android') {
-    ToastAndroid.show(msg, ToastAndroid.SHORT);
+    // LONG (3.5s) so judges see failure feedback before it disappears.
+    // SHORT (2s) was getting swallowed by the eye saccade after a tap
+    // that looked like it did nothing.
+    ToastAndroid.show(msg, ToastAndroid.LONG);
   } else {
     Alert.alert(msg);
   }
@@ -88,21 +92,26 @@ export default function LeaderboardScreen({ navigation }: Props) {
   }, [load]);
 
   const onShare = useCallback(async () => {
-    if (sharing) return;
+    // Round 4.5: instrument every step so logcat tells the whole story
+    // when a tap "does nothing" — previously the share-sheet rejection
+    // → silent clipboard-fallback → 2s toast vanished before judges
+    // even looked back at the screen, making it read as a dead button.
+    console.log('[leaderboard:share] tap registered');
+    if (sharing) {
+      console.log('[leaderboard:share] already sharing, ignoring');
+      return;
+    }
     if (!shareCardRef.current) {
-      // Off-screen render target hasn't mounted/measured yet. Silent
-      // return previously made the tap look broken; toast lets the user
-      // know to retry once the screen finishes laying out.
-      console.warn('[share] shareCardRef.current is null — capture target not mounted');
+      console.warn('[leaderboard:share] ref null — capture target not mounted');
       showToast('Loading… try again in a moment');
       return;
     }
     setSharing(true);
+    showToast('Generating share image…');
 
     // Phase 2C share flow: capture → upload → open share sheet.
     // Each step has its own try/catch so a capture failure logs
-    // distinctly from an upload failure, and the user-facing toast
-    // surfaces only when we genuinely can't recover.
+    // distinctly from an upload failure.
     let localUri = '';
     try {
       localUri = await captureRef(shareCardRef.current, {
@@ -110,9 +119,10 @@ export default function LeaderboardScreen({ navigation }: Props) {
         quality: 1,
         result: 'tmpfile',
       });
+      console.log(`[leaderboard:share] capture done: ${localUri}`);
     } catch (e) {
-      console.warn(`[share] capture failed: ${(e as Error).message}`);
-      showToast('Could not generate share link — try again');
+      console.warn(`[leaderboard:share] capture failed: ${(e as Error).message}`);
+      showToast('Could not generate share image — try again');
       setSharing(false);
       return;
     }
@@ -123,15 +133,23 @@ export default function LeaderboardScreen({ navigation }: Props) {
         localUri,
         `wrap-leaderboard-${Date.now()}`
       );
+      console.log(`[leaderboard:share] upload done: ${publicUrl}`);
     } catch (e) {
-      console.warn(`[share] upload failed: ${(e as Error).message}`);
-      showToast('Could not generate share link — try again');
+      console.warn(`[leaderboard:share] upload failed: ${(e as Error).message}`);
+      // Pinata down or rate-limited → fall back to opening the landing
+      // page so the tap still produces a visible action instead of
+      // dead-ending. Spec says "better than dead button".
+      try {
+        await Linking.openURL('https://getwrap.vercel.app');
+        showToast('Could not upload image — opened WRAP site instead');
+      } catch {
+        showToast('Could not generate share link — try again');
+      }
       setSharing(false);
       return;
     }
     if (!publicUrl) {
-      // No JWT configured → no point asking the user to retry.
-      console.warn('[share] pinata not configured (no EXPO_PUBLIC_PINATA_JWT)');
+      console.warn('[leaderboard:share] pinata not configured (no EXPO_PUBLIC_PINATA_JWT)');
       showToast('Sharing is not configured for this build');
       setSharing(false);
       return;
@@ -139,26 +157,38 @@ export default function LeaderboardScreen({ navigation }: Props) {
 
     // Sharing.shareAsync expects a local file URI on Android, so
     // attempting to share a remote https URL there typically throws —
-    // that's the path that lands us in the Clipboard fallback. iOS
-    // accepts remote URLs in some versions; either way the catch
-    // recovers cleanly.
+    // that's the path that lands us in the Alert fallback. The Alert
+    // is durable (modal, can't be missed) and shows the URL so judges
+    // can copy/share manually if the system sheet doesn't fire.
     try {
       const can = await Sharing.isAvailableAsync();
       if (can) {
+        console.log('[leaderboard:share] opening share sheet');
         await Sharing.shareAsync(publicUrl, {
           dialogTitle: 'Share WRAP Leaderboard',
         });
       } else {
         await Clipboard.setStringAsync(publicUrl);
-        showToast('Link copied');
+        Alert.alert(
+          'Leaderboard link copied',
+          publicUrl,
+          [{ text: 'OK' }]
+        );
       }
     } catch (e) {
-      console.warn(`[share] share sheet failed: ${(e as Error).message}`);
+      console.warn(`[leaderboard:share] share sheet failed: ${(e as Error).message}`);
+      // System sheet rejected the https URL (typical on Android) — copy
+      // to clipboard AND surface a durable Alert so the user actually
+      // sees what happened instead of a 2s toast they might miss.
       try {
         await Clipboard.setStringAsync(publicUrl);
-        showToast('Link copied');
+        Alert.alert(
+          'Leaderboard link copied',
+          publicUrl,
+          [{ text: 'OK' }]
+        );
       } catch (e2) {
-        console.warn(`[share] clipboard failed: ${(e2 as Error).message}`);
+        console.warn(`[leaderboard:share] clipboard failed: ${(e2 as Error).message}`);
         showToast('Could not generate share link — try again');
       }
     } finally {

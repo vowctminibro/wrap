@@ -241,7 +241,16 @@ async function analyzeWalletByAddress(
   // marginal +0..3 bonus from drawdownsHeld which is empty for these
   // demo wallets anyway. Falling back to assets:[] keeps the battle
   // running instead of dropping the user on the generic error screen.
-  const transactions = await getWalletTransactions(address);
+  // Round 4.5: bump tx fetch from default 100 → 1000. Active wallets
+  // (Toly, Ansem) make ~100 txs/day, so a 100-tx window only reaches
+  // back ~1 day → walletAgeDays collapses to ~14 → og_status scores
+  // to 0.2 instead of the 9-10 these wallets actually deserve. Worse,
+  // both wallets hit the 100 cap → totalTransactions identical →
+  // volume = log10(100) × 2.5 = 5.0 for both → guaranteed tie. The
+  // 1000-tx window pages 10× (Helius REST returns 100/page) but the
+  // retry layer in helius.ts absorbs the latency, and it's the
+  // difference between "Toly defeated Ansem 3-1" and "0-1, all 5.0s".
+  const transactions = await getWalletTransactions(address, 1000);
   let assets: DASAsset[] = [];
   try {
     assets = await getAllAssets(address, { pageLimit: 100, maxPages: 1 });

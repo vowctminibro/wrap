@@ -8,6 +8,7 @@ import {
   Alert,
   Modal,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -164,12 +165,23 @@ export default function OnboardingScreen({ navigation }: Props) {
         style={styles.blobGreen}
       />
 
-      <SafeAreaView
-        style={[
-          styles.safe,
-          { paddingBottom: insets.bottom + spacing.lg },
-        ]}
-      >
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Round 4.5: Onboarding's 3 CTAs were getting cropped on
+            ~720dp viewports after Round 4 added the Mark logo above
+            the wordmark — the fixed-height composition exceeded
+            available space on Seeker. Wrapping the content in a
+            ScrollView with flexGrow:1 + justifyContent:space-between
+            keeps the existing visual on tall screens (everything
+            still pushes to the edges) and lets the leaderboard CTA
+            scroll into view on shorter ones. */}
+        <ScrollView
+          contentContainerStyle={[
+            styles.safe,
+            { paddingBottom: insets.bottom + spacing.lg },
+          ]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
         <View style={styles.wordmarkWrap}>
           {/* Mark sits above the wordmark as a brand signature. Same
               gradient as the wordmark for visual continuity; smaller
@@ -267,6 +279,7 @@ export default function OnboardingScreen({ navigation }: Props) {
         <View style={styles.badgeWrap}>
           <SolanaBadge size="sm" />
         </View>
+        </ScrollView>
       </SafeAreaView>
 
       <Modal
@@ -347,12 +360,13 @@ const styles = StyleSheet.create({
     right: -260,
   },
   safe: {
-    flex: 1,
+    // Used as ScrollView contentContainerStyle. `flexGrow: 1` (not
+    // `flex: 1`) lets the content stretch to fill the viewport when
+    // small enough that justifyContent:'space-between' has effect,
+    // and grow past the viewport when the device is short enough
+    // that the 3 CTAs would otherwise crop.
+    flexGrow: 1,
     paddingHorizontal: spacing.lg,
-    // Bottom padding is set inline as `insets.bottom + spacing.lg` so
-    // the sample-wallet pill clears the system gesture/nav bar on
-    // every screen size (the static spacing.lg fallback wasn't enough
-    // on tall AVDs with no nav bar).
     justifyContent: 'space-between',
   },
   wordmarkWrap: {
