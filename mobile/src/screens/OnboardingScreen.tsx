@@ -20,6 +20,7 @@ import { analyzeWallet } from '../lib/wallet-analyzer';
 import { getAllAssets, getWalletTransactions } from '../services/helius';
 import SolanaBadge from '../components/SolanaBadge';
 import Wordmark from '../components/Wordmark';
+import Mark from '../components/Mark';
 import AmbientBlob from '../components/AmbientBlob';
 
 // Real Solana power-user wallet — used as the dev fallback when MWA isn't
@@ -170,10 +171,14 @@ export default function OnboardingScreen({ navigation }: Props) {
         ]}
       >
         <View style={styles.wordmarkWrap}>
+          {/* Mark sits above the wordmark as a brand signature. Same
+              gradient as the wordmark for visual continuity; smaller
+              size keeps it secondary to the typeset name below. */}
+          <Mark size={56} variant="gradient" />
           {/* Wordmark self-caps to screen width minus margin, so passing
               the bigger ideal size is safe — narrower screens shrink
               proportionally instead of cropping. */}
-          <Wordmark size={120} variant="gradient" glow />
+          <Wordmark size={96} variant="gradient" glow />
           <Text style={styles.year}>'26</Text>
         </View>
 
@@ -353,6 +358,7 @@ const styles = StyleSheet.create({
   wordmarkWrap: {
     alignItems: 'center',
     marginTop: spacing.md,
+    gap: spacing.xs,
   },
   year: {
     fontSize: fontSizes.bodySm,

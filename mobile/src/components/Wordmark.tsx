@@ -20,7 +20,11 @@ import Svg, {
   RadialGradient,
 } from 'react-native-svg';
 
-const VB_W = 1000;
+// VB_W extended past 1000 so the P glyph (whose right edge sits at
+// x=1020) renders inside the viewBox. Earlier 1000-wide viewBox
+// silently clipped the P on every render — visible as a chopped right
+// edge on Onboarding. 1040 = 20px symmetric margin (W starts at x=20).
+const VB_W = 1040;
 const VB_H = 280;
 
 // Reserve this much horizontal padding on each side so the wordmark
