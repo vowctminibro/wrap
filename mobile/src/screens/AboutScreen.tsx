@@ -117,7 +117,7 @@ export default function AboutScreen({ navigation }: Props) {
             >
               <View style={styles.rowText}>
                 <Text style={styles.rowLabel}>Vow</Text>
-                <Text style={styles.rowSub}>Solo, AI-native, Bangkok</Text>
+                <Text style={styles.rowSub}>Founder · Bangkok · 5 years on Solana</Text>
               </View>
               <Text style={styles.rowArrow}>↗</Text>
             </Pressable>
