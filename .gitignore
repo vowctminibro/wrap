@@ -2,6 +2,9 @@
 .env
 .env.*
 .env.tokens
+# Allow committed env templates (no secrets, just key shape)
+!.env.example
+!**/.env.example
 
 # Runtime-generated AsyncStorage shim for scripts/test-battle.ts
 scripts/fake-asyncstorage.cjs
