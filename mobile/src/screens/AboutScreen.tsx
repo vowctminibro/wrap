@@ -78,8 +78,7 @@ export default function AboutScreen({ navigation }: Props) {
         >
           <Text style={styles.h1}>WRAP</Text>
           <Text style={styles.tagline}>
-            Spotify Wrapped for your Solana wallet. AI-written stories from
-            real on-chain history, mintable as cNFTs.
+            Your Solana wallet, told as a story.
           </Text>
 
           <Section title="TECH STACK">
