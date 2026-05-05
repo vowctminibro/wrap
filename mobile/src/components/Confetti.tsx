@@ -18,6 +18,13 @@ type Piece = {
   isCircle: boolean;
 };
 
+// Round 6: confetti is clamped to the top 40% of the viewport so it
+// reads as a celebratory burst above the title rather than scattering
+// over "Your story is on-chain", "cNFT minted to …", and the SAS
+// pill below. Pieces drift further out (top: 0–40%) than they used
+// to (0–100%) but never cover the readable copy.
+const TOP_RANGE_PCT = 40;
+
 function buildPieces(count: number, seed: number): Piece[] {
   let s = seed;
   const rand = () => {
@@ -28,7 +35,7 @@ function buildPieces(count: number, seed: number): Piece[] {
   for (let i = 0; i < count; i++) {
     out.push({
       leftPct: rand() * 100,
-      topPct: rand() * 100,
+      topPct: rand() * TOP_RANGE_PCT,
       size: 6 + rand() * 14,
       rotateDeg: rand() * 360,
       color: COLORS[Math.floor(rand() * COLORS.length)],

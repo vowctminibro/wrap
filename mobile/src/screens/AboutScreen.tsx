@@ -46,6 +46,11 @@ const CREDITS: Credit[] = [
     sub: 'Compressed NFT (cNFT) program',
     href: 'https://developers.metaplex.com/bubblegum',
   },
+  {
+    label: 'Solana Attestation Service',
+    sub: 'On-chain identity attestations (sas-lib)',
+    href: 'https://attest.solana.com',
+  },
 ];
 
 const open = (url: string) => Linking.openURL(url).catch(() => {});
@@ -100,7 +105,7 @@ export default function AboutScreen({ navigation }: Props) {
             >
               <View style={styles.rowText}>
                 <Text style={styles.rowLabel}>github.com/vowctminibro/wrap</Text>
-                <Text style={styles.rowSub}>Open source · MIT planned</Text>
+                <Text style={styles.rowSub}>Open source · license TBD</Text>
               </View>
               <Text style={styles.rowArrow}>↗</Text>
             </Pressable>
