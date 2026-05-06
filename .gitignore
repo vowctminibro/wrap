@@ -13,3 +13,11 @@ scripts/fake-asyncstorage.cjs
 landing/.next/
 landing/node_modules/
 landing/.vercel/
+
+# Hermes/Vow workflow scratch files (kept locally, not committed)
+BROLL_SOURCES.md
+SUBMISSION_CHECKLIST.md
+X_OUTREACH_TARGETS.md
+SUBMISSION_AUDIT.md
+screenshots/
+*.apk
