@@ -1,16 +1,29 @@
-# WRAP
+<p align="center">
+  <img src="landing/public/brand/mark.svg" alt="WRAP mark" width="96" />
+</p>
+
+# WRAP — Identity layer for Solana
 
 > Your Solana wallet, told as a story.
-> Mobile-first identity layer for Solana — every wallet has a story,
-> we tell it. AI personality cards, mintable as cNFTs, with head-to-head
-> wallet Battles. Built for Solana Frontier 2026.
 
-[![Live](https://img.shields.io/badge/live-getwrap.vercel.app-9945FF)](https://getwrap.vercel.app)
-[![APK](https://img.shields.io/badge/APK-v0.1.0--preview-14F195)](https://github.com/vowctminibro/wrap/releases/latest)
+[![Live demo](https://img.shields.io/badge/live%20demo-getwrap.vercel.app-2c5)](https://getwrap.vercel.app)
+[![APK](https://img.shields.io/badge/APK-v0.1.0--preview-blue)](https://github.com/vowctminibro/wrap/releases/latest)
+[![Frontier 2026](https://img.shields.io/badge/Solana-Frontier%202026-purple)](https://www.colosseum.com)
 [![Demo](https://img.shields.io/badge/Demo-YouTube-red)](https://youtube.com/shorts/CHoOqUYqAzs)
 [![Twitter](https://img.shields.io/badge/Twitter-@getwrap-1da1f2)](https://x.com/getwrap)
 
 ![WRAP hero](docs/hero.png)
+
+WRAP turns 5M+ Solana wallets' on-chain history into mintable, verifiable
+identity. AI personality cards drawn from real activity, head-to-head
+wallet Battles, on-chain attestations via Solana Attestation Service so
+any Solana app can read WRAP scores with one SDK call. Mobile-native,
+Seeker-first, free-for-users — consumer reference app on top of an
+identity infrastructure layer.
+
+| Demo | APK | Pitch | Source |
+|------|-----|-------|--------|
+| [getwrap.vercel.app](https://getwrap.vercel.app) | [v0.1.0-preview](https://github.com/vowctminibro/wrap/releases/latest) | [YouTube](https://youtube.com/shorts/CHoOqUYqAzs) | [github.com/vowctminibro/wrap](https://github.com/vowctminibro/wrap) |
 
 ## Quick Start
 

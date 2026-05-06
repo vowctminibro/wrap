@@ -31,7 +31,12 @@ A user opens WRAP, connects their wallet (or taps Sample to explore), and within
 - **Mobile Wallet Adapter** — graceful fallback modal when no wallet app is installed.
 
 **Identity infrastructure layer:**
-- **Solana Attestation Service (SAS) integration** — every minted card creates an on-chain attestation via SAS, making WRAP scores verifiable by any Solana app. Schema, Credential, and Issuer pubkeys published in repo. *[update after Round 5 ships]*
+- **Solana Attestation Service (SAS) integration** — every minted card creates an on-chain attestation via SAS, making WRAP scores verifiable by any Solana app. Live on devnet today:
+  - Schema PDA (`WRAP_IDENTITY_V1`): [`4BAEmFLZaQE2QZAAeB64wTuLgXrWu1s1a98Wi9Aobji9`](https://solscan.io/account/4BAEmFLZaQE2QZAAeB64wTuLgXrWu1s1a98Wi9Aobji9?cluster=devnet)
+  - Credential PDA: [`EUoMouVtQJFhaqf3aCErWCa3gkQ9QDawjeMfe33aiwKg`](https://solscan.io/account/EUoMouVtQJFhaqf3aCErWCa3gkQ9QDawjeMfe33aiwKg?cluster=devnet)
+  - Issuer pubkey: `6uRTvYnEWJNmDayu7unoyTjqCRyuENwWVUyEDjbbV8Wx`
+  - Sample attestation tx (Toly): [`2Npi6Sq2NtfNvh1C8iJRUbJzyi2edvsF8NQhqhRimk8ZEXKjQaDUcaCFVyWZk4d6XjvkqKa2tqR5mH158XZzq5Bb`](https://solscan.io/tx/2Npi6Sq2NtfNvh1C8iJRUbJzyi2edvsF8NQhqhRimk8ZEXKjQaDUcaCFVyWZk4d6XjvkqKa2tqR5mH158XZzq5Bb?cluster=devnet)
+  - Verify any wallet: `NODE_PATH=mobile/node_modules npx tsx scripts/sas-verify.ts <pubkey>`
 - **Seeker Genesis Token detection** — Seeker holders get instant OG status the moment they connect.
 
 **Reliability + UX:**
