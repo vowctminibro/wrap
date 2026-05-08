@@ -23,7 +23,7 @@ export default function Home() {
             <FeatureCard
               src="/screenshots/cards.png"
               title="Personality Cards"
-              desc="Five AI-generated cards based on your wallet's real activity — diamond hands, OG status, recap, and more."
+              desc="Three AI-generated cards based on your wallet's real activity — Diamond Hand, OG Status, and Year Recap. Four more designed for v2."
             />
             <FeatureCard
               src="/screenshots/battle-final.png"
@@ -76,8 +76,8 @@ export default function Home() {
             Get the app.
           </h2>
           <p className="text-lg text-zinc-400 leading-relaxed mb-10">
-            Live on Solana devnet. Download the Android APK to try it now —
-            Seeker support and iOS coming after Frontier 2026.
+            Download the APK to try it on Android or Solana Seeker today.
+            iOS support coming after Frontier 2026.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a
@@ -108,6 +108,26 @@ export default function Home() {
               GitHub
             </a>
             . Star us to follow.
+          </p>
+          <p className="text-sm text-zinc-500 mt-3">
+            See WRAP in action:{" "}
+            <a
+              href="https://www.loom.com/share/795c290cd7024379961edc22d7d51eb6"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-zinc-300"
+            >
+              Pitch
+            </a>{" "}
+            ·{" "}
+            <a
+              href="https://www.loom.com/share/12632ac649d84b059914fa3e4ae18594"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-zinc-300"
+            >
+              Demo
+            </a>
           </p>
         </div>
       </section>
