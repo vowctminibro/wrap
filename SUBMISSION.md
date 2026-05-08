@@ -5,8 +5,8 @@
 **Live:** [getwrap.vercel.app](https://getwrap.vercel.app)  
 **APK:** [github.com/vowctminibro/wrap/releases/latest](https://github.com/vowctminibro/wrap/releases/latest)  
 **Source:** [github.com/vowctminibro/wrap](https://github.com/vowctminibro/wrap)  
-**Demo video:** *[insert YouTube URL after upload]*  
-**Pitch video:** *[insert YouTube URL after upload]*  
+**Demo video:** [loom.com/share/12632ac649d84b059914fa3e4ae18594](https://www.loom.com/share/12632ac649d84b059914fa3e4ae18594)  
+**Pitch video:** [loom.com/share/795c290cd7024379961edc22d7d51eb6](https://www.loom.com/share/795c290cd7024379961edc22d7d51eb6)  
 **Twitter:** [@getwrap](https://x.com/getwrap)  
 **Founder:** [@VowIMTX](https://x.com/VowIMTX)
 
@@ -226,7 +226,7 @@ Time to wrap.
 **Live demo:** [getwrap.vercel.app](https://getwrap.vercel.app)  
 **APK download:** [github.com/vowctminibro/wrap/releases/latest](https://github.com/vowctminibro/wrap/releases/latest)  
 **Source code:** [github.com/vowctminibro/wrap](https://github.com/vowctminibro/wrap)  
-**Pitch video:** *[YouTube URL]*  
-**Demo video:** *[YouTube URL]*  
+**Pitch video:** [loom.com/share/795c290cd7024379961edc22d7d51eb6](https://www.loom.com/share/795c290cd7024379961edc22d7d51eb6)  
+**Demo video:** [loom.com/share/12632ac649d84b059914fa3e4ae18594](https://www.loom.com/share/12632ac649d84b059914fa3e4ae18594)  
 **Twitter:** [@getwrap](https://x.com/getwrap)  
 **Founder:** [@VowIMTX](https://x.com/VowIMTX)

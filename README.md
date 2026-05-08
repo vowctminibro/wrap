@@ -9,7 +9,8 @@
 [![Live demo](https://img.shields.io/badge/live%20demo-getwrap.vercel.app-2c5)](https://getwrap.vercel.app)
 [![APK](https://img.shields.io/badge/APK-v0.1.0--preview-blue)](https://github.com/vowctminibro/wrap/releases/latest)
 [![Frontier 2026](https://img.shields.io/badge/Solana-Frontier%202026-purple)](https://www.colosseum.com)
-[![Demo](https://img.shields.io/badge/Demo-coming%20soon-grey)](#)
+[![Demo](https://img.shields.io/badge/Demo-Loom-625df5)](https://www.loom.com/share/12632ac649d84b059914fa3e4ae18594)
+[![Pitch](https://img.shields.io/badge/Pitch-Loom-625df5)](https://www.loom.com/share/795c290cd7024379961edc22d7d51eb6)
 [![Twitter](https://img.shields.io/badge/Twitter-@getwrap-1da1f2)](https://x.com/getwrap)
 
 ![WRAP hero](docs/hero.png)
@@ -23,14 +24,15 @@ identity infrastructure layer.
 
 | Demo | APK | Pitch | Source |
 |------|-----|-------|--------|
-| [getwrap.vercel.app](https://getwrap.vercel.app) | [v0.1.0-preview](https://github.com/vowctminibro/wrap/releases/latest) | _coming soon_ | [github.com/vowctminibro/wrap](https://github.com/vowctminibro/wrap) |
+| [getwrap.vercel.app](https://getwrap.vercel.app) | [v0.1.0-preview](https://github.com/vowctminibro/wrap/releases/latest) | [Loom](https://www.loom.com/share/795c290cd7024379961edc22d7d51eb6) | [github.com/vowctminibro/wrap](https://github.com/vowctminibro/wrap) |
 
 ## Quick Start
 
 - 📱 **Try it:** [Download APK](https://github.com/vowctminibro/wrap/releases/latest) → install → tap "Sample wallet"
-- 🎬 **Watch demo:** _coming soon — Day 17/18_
+- 🎬 **Watch demo:** [Loom walkthrough](https://www.loom.com/share/12632ac649d84b059914fa3e4ae18594) · [Pitch (3 min)](https://www.loom.com/share/795c290cd7024379961edc22d7d51eb6)
 - 🌐 **Landing:** [getwrap.vercel.app](https://getwrap.vercel.app)
 - 📄 **Submission:** [SUBMISSION.md](./SUBMISSION.md)
+- 📜 **Sprint log:** [PROGRESS.md](./PROGRESS.md) — 18-day build, daily commits
 
 ## What WRAP does
 
