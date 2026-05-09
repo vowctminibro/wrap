@@ -13,7 +13,9 @@
 [![Pitch](https://img.shields.io/badge/Pitch-Loom-625df5)](https://www.loom.com/share/795c290cd7024379961edc22d7d51eb6)
 [![Twitter](https://img.shields.io/badge/Twitter-@getwrap-1da1f2)](https://x.com/getwrap)
 
-![WRAP hero](docs/hero.png)
+<p align="center">
+  <img src="docs/hero-wordmark.png" alt="WRAP — Identity layer for Solana" width="800" />
+</p>
 
 WRAP turns 5M+ Solana wallets' on-chain history into mintable, verifiable
 identity. AI personality cards drawn from real activity, head-to-head
@@ -70,7 +72,7 @@ image that unfurls cleanly on Twitter.
 ├── README.md                  (you are here)
 ├── SUBMISSION.md              Frontier 2026 submission narrative
 ├── PROGRESS.md                day-by-day sprint log
-├── docs/hero.png              README hero
+├── docs/hero-wordmark.png     README hero
 ├── research/                  audit notes, demo battle pubkey research
 ├── scripts/                   devnet helpers + smoke tests
 ├── landing/                   Next.js 16 landing → getwrap.vercel.app
